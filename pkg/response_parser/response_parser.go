@@ -26,9 +26,9 @@ func NewResponseParser(
 		responses:      []ParsedResponse{},
 	}
 
-	rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(surveyDef.Current))
+	rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(surveyDef.Current, previewLang))
 	for _, v := range surveyDef.History {
-		rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(v))
+		rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(v, previewLang))
 	}
 
 	return &rp, errors.New("unimplemented")

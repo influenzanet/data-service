@@ -1,8 +1,13 @@
 package response_parser
 
-import studyAPI "github.com/influenzanet/study-service/pkg/api"
+import (
+	"errors"
+	"log"
 
-func surveyDefToVersionPreview(original *studyAPI.SurveyVersion) SurveyVersionPreview {
+	studyAPI "github.com/influenzanet/study-service/pkg/api"
+)
+
+func surveyDefToVersionPreview(original *studyAPI.SurveyVersion, prefLang string) SurveyVersionPreview {
 	sp := SurveyVersionPreview{
 		VersionID:   original.VersionId,
 		Published:   original.Published,
@@ -10,11 +15,11 @@ func surveyDefToVersionPreview(original *studyAPI.SurveyVersion) SurveyVersionPr
 		Questions:   []SurveyQuestion{},
 	}
 
-	sp.Questions = extractQuestions(original.SurveyDefinition)
+	sp.Questions = extractQuestions(original.SurveyDefinition, prefLang)
 	return sp
 }
 
-func extractQuestions(root *studyAPI.SurveyItem) []SurveyQuestion {
+func extractQuestions(root *studyAPI.SurveyItem, prefLang string) []SurveyQuestion {
 	questions := []SurveyQuestion{}
 	if root == nil {
 		return questions
@@ -25,19 +30,43 @@ func extractQuestions(root *studyAPI.SurveyItem) []SurveyQuestion {
 		}
 
 		if isItemGroup(item) {
-			questions = append(questions, extractQuestions(item)...)
+			questions = append(questions, extractQuestions(item, prefLang)...)
 			continue
 		}
 
 		rg := getResponseGroupComponent(item)
-		// TODO: find response group -> if not, continue
-		// TODO: get question type (based on parsed response group)
+		if rg == nil {
+			continue
+		}
+
+		qType := getQuestionType(rg)
+
+		// TODO: get response options
+		responseOptions := []ResponseOption{}
+
+		titleComp := getTitleComponent(item)
+		title := ""
+		if titleComp != nil {
+			var err error
+			title, err = getTranslation(titleComp.Content, prefLang)
+			if err != nil {
+				log.Printf("Question %s title error: %v", item.Key, err)
+			}
+		}
+
+		question := SurveyQuestion{
+			ID:              item.Key,
+			Title:           title,
+			QuestionType:    qType,
+			ResponseOptions: responseOptions,
+		}
+		questions = append(questions, question)
 	}
 	return questions
 }
 
 func isItemGroup(item *studyAPI.SurveyItem) bool {
-	return len(item.Items) > 0
+	return item != nil && len(item.Items) > 0
 }
 
 func getResponseGroupComponent(question *studyAPI.SurveyItem) *studyAPI.ItemComponent {
@@ -50,4 +79,68 @@ func getResponseGroupComponent(question *studyAPI.SurveyItem) *studyAPI.ItemComp
 		}
 	}
 	return nil
+}
+
+func getTitleComponent(question *studyAPI.SurveyItem) *studyAPI.ItemComponent {
+	if question.Components == nil {
+		return nil
+	}
+	for _, c := range question.Components.Items {
+		if c.Role == "title" {
+			return c
+		}
+	}
+	return nil
+}
+
+func getQuestionType(rg *studyAPI.ItemComponent) string {
+	if rg == nil {
+		return QUESTION_TYPE_UNKNOWN
+	}
+
+	if len(rg.Items) == 1 {
+		role := rg.Items[0].Role
+		if role == "singleChoiceGroup" {
+			return QUESTION_TYPE_SINGLE_CHOICE
+		} else if role == "multipleChoiceGroup" {
+			return QUESTION_TYPE_MULTIPLE_CHOICE
+		}
+
+	} else if len(rg.Items) > 1 {
+
+	}
+	return QUESTION_TYPE_UNKNOWN
+}
+
+/*
+"singleChoiceGroup"
+"multipleChoiceGroup"
+"dropDownGroup"
+"input"
+"numberInput"
+"dateInput"
+"multilineTextInput"
+"eq5d-health-indicator"
+"sliderNumeric"
+"matrix"
+"likert"
+*/
+
+func getTranslation(content []*studyAPI.LocalisedObject, lang string) (string, error) {
+	if len(content) < 1 {
+		return "", errors.New("translations missing")
+	}
+
+	for _, translation := range content {
+		if translation.Code == lang {
+			mergedText := ""
+			for _, p := range translation.Parts {
+				if p.Dtype == "str" {
+					mergedText += p.GetStr()
+				}
+			}
+			return mergedText, nil
+		}
+	}
+	return "", errors.New("translation missing")
 }
