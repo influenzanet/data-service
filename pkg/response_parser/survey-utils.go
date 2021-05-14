@@ -39,10 +39,7 @@ func extractQuestions(root *studyAPI.SurveyItem, prefLang string) []SurveyQuesti
 			continue
 		}
 
-		qType := getQuestionType(rg)
-
-		// TODO: get response options
-		responseOptions := []ResponseOption{}
+		responses, qType := extractResponses(rg, prefLang)
 
 		titleComp := getTitleComponent(item)
 		title := ""
@@ -55,10 +52,10 @@ func extractQuestions(root *studyAPI.SurveyItem, prefLang string) []SurveyQuesti
 		}
 
 		question := SurveyQuestion{
-			ID:              item.Key,
-			Title:           title,
-			QuestionType:    qType,
-			ResponseOptions: responseOptions,
+			ID:           item.Key,
+			Title:        title,
+			QuestionType: qType,
+			Responses:    responses,
 		}
 		questions = append(questions, question)
 	}
@@ -93,39 +90,6 @@ func getTitleComponent(question *studyAPI.SurveyItem) *studyAPI.ItemComponent {
 	return nil
 }
 
-func getQuestionType(rg *studyAPI.ItemComponent) string {
-	if rg == nil {
-		return QUESTION_TYPE_UNKNOWN
-	}
-
-	if len(rg.Items) == 1 {
-		role := rg.Items[0].Role
-		if role == "singleChoiceGroup" {
-			return QUESTION_TYPE_SINGLE_CHOICE
-		} else if role == "multipleChoiceGroup" {
-			return QUESTION_TYPE_MULTIPLE_CHOICE
-		}
-
-	} else if len(rg.Items) > 1 {
-
-	}
-	return QUESTION_TYPE_UNKNOWN
-}
-
-/*
-"singleChoiceGroup"
-"multipleChoiceGroup"
-"dropDownGroup"
-"input"
-"numberInput"
-"dateInput"
-"multilineTextInput"
-"eq5d-health-indicator"
-"sliderNumeric"
-"matrix"
-"likert"
-*/
-
 func getTranslation(content []*studyAPI.LocalisedObject, lang string) (string, error) {
 	if len(content) < 1 {
 		return "", errors.New("translations missing")
@@ -143,4 +107,116 @@ func getTranslation(content []*studyAPI.LocalisedObject, lang string) (string, e
 		}
 	}
 	return "", errors.New("translation missing")
+}
+
+func extractResponses(rg *studyAPI.ItemComponent, lang string) ([]ResponseDef, string) {
+	if rg == nil {
+		return []ResponseDef{}, QUESTION_TYPE_EMPTY
+	}
+
+	responses := []ResponseDef{}
+	for _, item := range rg.Items {
+		r, ignore := mapToResponseDef(item, rg.Key, lang)
+		if !ignore {
+			responses = append(responses, r)
+		}
+	}
+
+	qType := getQuestionType(responses)
+
+	/*
+		if qType == QUESTION_TYPE_SINGLE_CHOICE {
+			// TODO:
+		} else if qType == QUESTION_TYPE_MULTIPLE_CHOICE {
+			// TODO:
+		} else if qType == QUESTION_TYPE_LIKERT_GROUP {
+			// TODO:
+		} else if qType == QUESTION_TYPE_DATE {
+			// TODO:
+		} else if qType == QUESTION_TYPE_INPUT {
+			// TODO:
+		} else if qType == QUESTION_TYPE_NUMBER_INPUT {
+			// TODO:
+		} else if qType == QUESTION_TYPE_EQ5D_SLIDER {
+			// TODO:
+		} else if qType == QUESTION_TYPE_NUMERIC_SLIDER {
+			// TODO:
+		} else if qType == QUESTION_TYPE_DROPDOWN_GROUP {
+			// TODO:
+		} else if qType == QUESTION_TYPE_MATRIX {
+			// TODO:
+		} else {
+			// TODO
+		}
+	*/
+	return responses, qType
+
+}
+
+func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang string) (ResponseDef, bool) {
+	if rItem == nil {
+		log.Println("mapToResponseDef: unexpected nil input")
+		return ResponseDef{}, true
+	}
+
+	key := parentKey + "." + rItem.Key
+	responseDef := ResponseDef{
+		ID: key,
+	}
+
+	switch rItem.Role {
+	case "singleChoiceGroup":
+		for _, o := range rItem.Items {
+			label, err := getTranslation(o.Content, lang)
+			if err != nil {
+				log.Printf("mapToResponseDef: label not found for: %v", o)
+			}
+			option := ResponseOption{
+				ID:    key + "." + o.Key,
+				Label: label,
+			}
+			switch o.Role {
+			case "option":
+				option.OptionType = OPTION_TYPE_RADIO
+			case "input":
+				option.OptionType = OPTION_TYPE_TEXT_INPUT
+			case "dateInput":
+				option.OptionType = OPTION_TYPE_DATE_INPUT
+			case "numberInput":
+				option.OptionType = OPTION_TYPE_NUMBER_INPUT
+			}
+			responseDef.Options = append(responseDef.Options, option)
+		}
+		responseDef.ResponseType = QUESTION_TYPE_SINGLE_CHOICE
+		return responseDef, false
+		/*
+			"singleChoiceGroup"
+			"multipleChoiceGroup"
+			"dropDownGroup"
+			"input"
+			"numberInput"
+			"dateInput"
+			"multilineTextInput"
+			"eq5d-health-indicator"
+			"sliderNumeric"
+			"matrix"
+			"likert"
+		*/
+	default:
+		log.Printf("mapToResponseDef: component with role is ignored: %s [%s]", rItem.Role, key)
+		return responseDef, true
+	}
+}
+
+func getQuestionType(responses []ResponseDef) string {
+	qType := QUESTION_TYPE_UNKNOWN
+	if len(responses) < 1 {
+		qType = QUESTION_TYPE_EMPTY
+	} else if len(responses) == 1 {
+		qType = responses[0].ResponseType
+	} else {
+		// TODO: mixed or map to something specific (e.g., if all the same...)
+	}
+
+	return qType
 }

@@ -64,114 +64,6 @@ func TestGetResponseGroupComponent(t *testing.T) {
 	})
 }
 
-func TestGetQuestionType(t *testing.T) {
-
-	t.Run("missing response group component", func(t *testing.T) {
-		if qt := getQuestionType(nil); qt != QUESTION_TYPE_UNKNOWN {
-			t.Errorf("unexpected question type: %s", qt)
-		}
-	})
-
-	t.Run("missing items", func(t *testing.T) {
-		rg := &studyAPI.ItemComponent{
-			Key:   "rg",
-			Role:  "responseGroup",
-			Items: []*studyAPI.ItemComponent{},
-		}
-		if qt := getQuestionType(rg); qt != QUESTION_TYPE_UNKNOWN {
-			t.Errorf("unexpected question type: %s", qt)
-		}
-	})
-
-	t.Run("multiple items (unknown)", func(t *testing.T) {
-		rg := &studyAPI.ItemComponent{
-			Key:  "rg",
-			Role: "responseGroup",
-			Items: []*studyAPI.ItemComponent{
-				{Key: "1", Role: "Text"},
-				{Key: "2", Role: "Something"},
-				{Key: "3", Role: "More"},
-			},
-		}
-		if qt := getQuestionType(rg); qt != QUESTION_TYPE_UNKNOWN {
-			t.Errorf("unexpected question type: %s", qt)
-		}
-	})
-
-	t.Run("singleChoiceGroup", func(t *testing.T) {
-		rg := &studyAPI.ItemComponent{
-			Key:  "rg",
-			Role: "responseGroup",
-			Items: []*studyAPI.ItemComponent{
-				{Key: "scg", Role: "singleChoiceGroup", Items: []*studyAPI.ItemComponent{
-					{Key: "1", Role: "option"},
-					{Key: "2", Role: "option"},
-				}},
-			},
-		}
-		if qt := getQuestionType(rg); qt != QUESTION_TYPE_SINGLE_CHOICE {
-			t.Errorf("unexpected question type: %s", qt)
-		}
-	})
-
-	t.Run("multipleChoiceGroup", func(t *testing.T) {
-		rg := &studyAPI.ItemComponent{
-			Key:  "rg",
-			Role: "responseGroup",
-			Items: []*studyAPI.ItemComponent{
-				{Key: "scg", Role: "multipleChoiceGroup", Items: []*studyAPI.ItemComponent{
-					{Key: "1", Role: "option"},
-					{Key: "2", Role: "option"},
-				}},
-			},
-		}
-		if qt := getQuestionType(rg); qt != QUESTION_TYPE_MULTIPLE_CHOICE {
-			t.Errorf("unexpected question type: %s", qt)
-		}
-	})
-
-	t.Run("dropDownGroup", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("input", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("multilineTextInput", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("numberInput", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("dateInput", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("eq5d-health-indicator", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("sliderNumeric", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("matrix", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("likerts - but not likertGroup", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("likertGroup", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-}
-
 func TestGetTranslation(t *testing.T) {
 
 	t.Run("with empty translation list", func(t *testing.T) {
@@ -234,6 +126,306 @@ func TestGetTranslation(t *testing.T) {
 		if tr != "Test EN" {
 			t.Errorf("unexpected value: %s", tr)
 			return
+		}
+	})
+}
+
+func TestExtractResponses(t *testing.T) {
+	testLang := "en"
+	t.Run("missing response group component", func(t *testing.T) {
+		ro, qType := extractResponses(nil, testLang)
+		if len(ro) > 0 {
+			t.Error("should be empty")
+		}
+		if qType != QUESTION_TYPE_EMPTY {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("missing items", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:   "rg",
+			Role:  "responseGroup",
+			Items: []*studyAPI.ItemComponent{},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) > 0 {
+			t.Error("should be empty")
+		}
+		if qType != QUESTION_TYPE_EMPTY {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("multiple items (not known roles)", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "text"},
+				{Key: "2", Role: "something"},
+				{Key: "3", Role: "more"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) > 0 {
+			t.Error("should be empty")
+		}
+		if qType != QUESTION_TYPE_EMPTY {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("single choice group", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "scg", Role: "singleChoiceGroup", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "option"},
+					{Key: "2", Role: "text"},
+					{Key: "3", Role: "input"},
+					{Key: "4", Role: "dateInput"},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_SINGLE_CHOICE {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("multiple choice group", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "mcg", Role: "multipleChoiceGroup", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "option"},
+					{Key: "2", Role: "text"},
+					{Key: "3", Role: "input"},
+					{Key: "4", Role: "dateInput"},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_SINGLE_CHOICE {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("likert group", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "lg", Role: "likertGroup", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "text"},
+					{Key: "2", Role: "likert", Items: []*studyAPI.ItemComponent{
+						{Key: "1", Role: "option"},
+						{Key: "2", Role: "option"},
+						{Key: "3", Role: "option"},
+					}},
+					{Key: "3", Role: "text"},
+					{Key: "4", Role: "likert", Items: []*studyAPI.ItemComponent{
+						{Key: "1", Role: "option"},
+						{Key: "2", Role: "option"},
+						{Key: "3", Role: "option"},
+					}},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 2 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_LIKERT {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("likerts - but not likertGroup", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+
+				{Key: "1", Role: "text"},
+				{Key: "2", Role: "likert", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "option"},
+					{Key: "2", Role: "option"},
+					{Key: "3", Role: "option"},
+				}},
+				{Key: "3", Role: "text"},
+				{Key: "4", Role: "likert", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "option"},
+					{Key: "2", Role: "option"},
+					{Key: "3", Role: "option"},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 2 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_LIKERT {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("date input", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "dateInput"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_DATE_INPUT {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("text input", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "input"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_TEXT_INPUT {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("number input", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "numberInput"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_NUMBER_INPUT {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("eq5d slider", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "eq5d-health-indicator"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_EQ5D_SLIDER {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("numeric slider", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "1", Role: "slider"},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_NUMERIC_SLIDER {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("dropdown group", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "ddg", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
+					{Key: "1", Role: "option"},
+					{Key: "2", Role: "option"},
+					{Key: "3", Role: "option"},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 1 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_DROPDOWN {
+			t.Errorf("unexpected question type: %s", qType)
+		}
+	})
+
+	t.Run("matrix", func(t *testing.T) {
+		rg := &studyAPI.ItemComponent{
+			Key:  "rg",
+			Role: "responseGroup",
+			Items: []*studyAPI.ItemComponent{
+				{Key: "m", Role: "matrix", Items: []*studyAPI.ItemComponent{
+					{Key: "r1", Role: "responseRow", Items: []*studyAPI.ItemComponent{
+						{Key: "c1", Role: "label"},
+						{Key: "c2", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
+							{Key: "1", Role: "option"},
+							{Key: "2", Role: "option"},
+							{Key: "3", Role: "option"},
+						}},
+						{Key: "c3", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
+							{Key: "1", Role: "option"},
+							{Key: "2", Role: "option"},
+							{Key: "3", Role: "option"},
+						}},
+					}},
+					{Key: "r2", Role: "responseRow", Items: []*studyAPI.ItemComponent{
+						{Key: "c1", Role: "label"},
+						{Key: "c2", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
+							{Key: "1", Role: "option"},
+							{Key: "2", Role: "option"},
+							{Key: "3", Role: "option"},
+						}},
+						{Key: "c3", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
+							{Key: "1", Role: "option"},
+							{Key: "2", Role: "option"},
+							{Key: "3", Role: "option"},
+						}},
+					}},
+				}},
+			},
+		}
+		ro, qType := extractResponses(rg, testLang)
+		if len(ro) != 4 {
+			t.Error("shouldn't be empty")
+		}
+		if qType != QUESTION_TYPE_MATRIX {
+			t.Errorf("unexpected question type: %s", qType)
 		}
 	})
 }
