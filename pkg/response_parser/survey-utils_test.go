@@ -215,7 +215,7 @@ func TestExtractResponses(t *testing.T) {
 		if len(ro) != 1 {
 			t.Error("shouldn't be empty")
 		}
-		if qType != QUESTION_TYPE_SINGLE_CHOICE {
+		if qType != QUESTION_TYPE_MULTIPLE_CHOICE {
 			t.Errorf("unexpected question type: %s", qType)
 		}
 	})
@@ -352,7 +352,7 @@ func TestExtractResponses(t *testing.T) {
 			Key:  "rg",
 			Role: "responseGroup",
 			Items: []*studyAPI.ItemComponent{
-				{Key: "1", Role: "slider"},
+				{Key: "1", Role: "sliderNumeric"},
 			},
 		}
 		ro, qType := extractResponses(rg, testLang)

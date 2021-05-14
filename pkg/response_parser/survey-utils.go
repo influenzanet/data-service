@@ -116,10 +116,9 @@ func extractResponses(rg *studyAPI.ItemComponent, lang string) ([]ResponseDef, s
 
 	responses := []ResponseDef{}
 	for _, item := range rg.Items {
-		r, ignore := mapToResponseDef(item, rg.Key, lang)
-		if !ignore {
-			responses = append(responses, r)
-		}
+		r := mapToResponseDef(item, rg.Key, lang)
+		responses = append(responses, r...)
+
 	}
 
 	qType := getQuestionType(responses)
@@ -153,10 +152,10 @@ func extractResponses(rg *studyAPI.ItemComponent, lang string) ([]ResponseDef, s
 
 }
 
-func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang string) (ResponseDef, bool) {
+func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang string) []ResponseDef {
 	if rItem == nil {
 		log.Println("mapToResponseDef: unexpected nil input")
-		return ResponseDef{}, true
+		return []ResponseDef{}
 	}
 
 	key := parentKey + "." + rItem.Key
@@ -188,34 +187,155 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 			responseDef.Options = append(responseDef.Options, option)
 		}
 		responseDef.ResponseType = QUESTION_TYPE_SINGLE_CHOICE
-		return responseDef, false
+		return []ResponseDef{responseDef}
+	case "multipleChoiceGroup":
+		for _, o := range rItem.Items {
+			label, err := getTranslation(o.Content, lang)
+			if err != nil {
+				log.Printf("mapToResponseDef: label not found for: %v", o)
+			}
+			option := ResponseOption{
+				ID:    key + "." + o.Key,
+				Label: label,
+			}
+			switch o.Role {
+			case "option":
+				option.OptionType = OPTION_TYPE_RADIO
+			case "input":
+				option.OptionType = OPTION_TYPE_TEXT_INPUT
+			case "dateInput":
+				option.OptionType = OPTION_TYPE_DATE_INPUT
+			case "numberInput":
+				option.OptionType = OPTION_TYPE_NUMBER_INPUT
+			}
+			responseDef.Options = append(responseDef.Options, option)
+		}
+		responseDef.ResponseType = QUESTION_TYPE_MULTIPLE_CHOICE
+		return []ResponseDef{responseDef}
+	case "dropDownGroup":
+		for _, o := range rItem.Items {
+			label, err := getTranslation(o.Content, lang)
+			if err != nil {
+				log.Printf("mapToResponseDef: label not found for: %v", o)
+			}
+			option := ResponseOption{
+				ID:    key + "." + o.Key,
+				Label: label,
+			}
+			option.OptionType = OPTION_TYPE_RADIO
+			responseDef.Options = append(responseDef.Options, option)
+		}
+		responseDef.ResponseType = QUESTION_TYPE_DROPDOWN
+		return []ResponseDef{responseDef}
+	case "input":
+		label, err := getTranslation(rItem.Content, lang)
+		if err != nil {
+			log.Printf("mapToResponseDef: label not found for: %v", rItem)
+		}
+		responseDef.Label = label
+		responseDef.ResponseType = QUESTION_TYPE_TEXT_INPUT
+		return []ResponseDef{responseDef}
+	case "multilineTextInput":
+		label, err := getTranslation(rItem.Content, lang)
+		if err != nil {
+			log.Printf("mapToResponseDef: label not found for: %v", rItem)
+		}
+		responseDef.Label = label
+		responseDef.ResponseType = QUESTION_TYPE_TEXT_INPUT
+		return []ResponseDef{responseDef}
+	case "numberInput":
+		label, err := getTranslation(rItem.Content, lang)
+		if err != nil {
+			log.Printf("mapToResponseDef: label not found for: %v", rItem)
+		}
+		responseDef.Label = label
+		responseDef.ResponseType = QUESTION_TYPE_NUMBER_INPUT
+		return []ResponseDef{responseDef}
+	case "dateInput":
+		label, err := getTranslation(rItem.Content, lang)
+		if err != nil {
+			log.Printf("mapToResponseDef: label not found for: %v", rItem)
+		}
+		responseDef.Label = label
+		responseDef.ResponseType = QUESTION_TYPE_DATE_INPUT
+		return []ResponseDef{responseDef}
+	case "eq5d-health-indicator":
+		responseDef.Label = ""
+		responseDef.ResponseType = QUESTION_TYPE_EQ5D_SLIDER
+		return []ResponseDef{responseDef}
+	case "sliderNumeric":
+		label, err := getTranslation(rItem.Content, lang)
+		if err != nil {
+			log.Printf("mapToResponseDef: label not found for: %v", rItem)
+		}
+		responseDef.Label = label
+		responseDef.ResponseType = QUESTION_TYPE_NUMERIC_SLIDER
+		return []ResponseDef{responseDef}
+	case "likert":
+		for _, o := range rItem.Items {
+			label, err := getTranslation(o.Content, lang)
+			if err != nil {
+				log.Printf("mapToResponseDef: label not found for: %v", o)
+			}
+			option := ResponseOption{
+				ID:    key + "." + o.Key,
+				Label: label,
+			}
+			option.OptionType = OPTION_TYPE_RADIO
+			responseDef.Options = append(responseDef.Options, option)
+		}
+		responseDef.ResponseType = QUESTION_TYPE_LIKERT
+		return []ResponseDef{responseDef}
+	case "likertGroup":
+		responses := []ResponseDef{}
+		for _, g := range rItem.Items {
+			if g.Role != "likert" {
+				continue
+			}
+			subKey := key + "." + g.Key
+			currentResponseDef := ResponseDef{
+				ID:           subKey,
+				ResponseType: QUESTION_TYPE_LIKERT,
+			}
+
+			label, err := getTranslation(g.Content, lang)
+			if err != nil {
+				log.Printf("mapToResponseDef: label not found for: %v", g)
+			}
+			for _, o := range g.Items {
+				option := ResponseOption{
+					ID:    subKey + "." + o.Key,
+					Label: label,
+				}
+				option.OptionType = OPTION_TYPE_RADIO
+				currentResponseDef.Options = append(responseDef.Options, option)
+			}
+			responses = append(responses, currentResponseDef)
+		}
+		return responses
 		/*
-			"singleChoiceGroup"
-			"multipleChoiceGroup"
-			"dropDownGroup"
-			"input"
-			"numberInput"
-			"dateInput"
-			"multilineTextInput"
-			"eq5d-health-indicator"
-			"sliderNumeric"
 			"matrix"
-			"likert"
 		*/
 	default:
 		log.Printf("mapToResponseDef: component with role is ignored: %s [%s]", rItem.Role, key)
-		return responseDef, true
+		return []ResponseDef{}
 	}
 }
 
 func getQuestionType(responses []ResponseDef) string {
-	qType := QUESTION_TYPE_UNKNOWN
+	var qType string
 	if len(responses) < 1 {
 		qType = QUESTION_TYPE_EMPTY
 	} else if len(responses) == 1 {
 		qType = responses[0].ResponseType
 	} else {
-		// TODO: mixed or map to something specific (e.g., if all the same...)
+		// mixed or map to something specific (e.g., if all the same...)
+		qType = responses[0].ResponseType
+		for _, r := range responses {
+			if qType != r.ResponseType {
+				return QUESTION_TYPE_UNKNOWN
+			}
+		}
 	}
 
 	return qType
