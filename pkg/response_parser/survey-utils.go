@@ -3,6 +3,7 @@ package response_parser
 import (
 	"errors"
 	"log"
+	"strings"
 
 	studyAPI "github.com/influenzanet/study-service/pkg/api"
 )
@@ -313,9 +314,78 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 			responses = append(responses, currentResponseDef)
 		}
 		return responses
-		/*
-			"matrix"
-		*/
+
+	case "matrix":
+		responses := []ResponseDef{}
+		for _, row := range rItem.Items {
+			rowKey := key + "." + row.Key
+			if row.Role == "responseRow" {
+				for _, col := range row.Items {
+					cellKey := rowKey + "." + col.Key
+					currentResponseDef := ResponseDef{
+						ID: cellKey,
+					}
+					if col.Role == "dropDownGroup" {
+						for _, o := range col.Items {
+							dL, err := getTranslation(o.Content, lang)
+							if err != nil {
+								log.Printf("mapToResponseDef: label not found for: %v", o)
+							}
+							option := ResponseOption{
+								ID:    cellKey + "." + o.Key,
+								Label: dL,
+							}
+							option.OptionType = OPTION_TYPE_DROPDOWN_OPTION
+							currentResponseDef.Options = append(responseDef.Options, option)
+						}
+						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_DROPDOWN
+					} else if col.Role == "input" {
+						label, err := getTranslation(col.Content, lang)
+						if err != nil {
+							log.Printf("mapToResponseDef: label not found for: %v", col)
+						}
+						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_DROPDOWN
+						currentResponseDef.Label = label
+					} else if col.Role == "check" {
+						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_CHECKBOX
+					} else if col.Role == "numberInput" {
+						label, err := getTranslation(col.Content, lang)
+						if err != nil {
+							log.Printf("mapToResponseDef: label not found for: %v", col)
+						}
+						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_NUMBER_INPUT
+						currentResponseDef.Label = label
+					} else {
+						log.Printf("mapToResponseDef: matrix cell role %s ignored.", col.Role)
+						continue
+					}
+					responses = append(responses, currentResponseDef)
+				}
+			} else if row.Role == "radioRow" {
+				currentResponseDef := ResponseDef{
+					ID:           rowKey,
+					ResponseType: QUESTION_TYPE_MATRIX_RADIO_ROW,
+				}
+				for _, o := range row.Items {
+					if o.Role == "label" {
+						label, err := getTranslation(o.Content, lang)
+						if err != nil {
+							log.Printf("mapToResponseDef: label not found for: %v", o)
+						}
+						currentResponseDef.Label = label
+					} else {
+						option := ResponseOption{
+							ID: rowKey + "." + o.Key,
+						}
+						option.OptionType = OPTION_TYPE_RADIO
+						currentResponseDef.Options = append(responseDef.Options, option)
+					}
+				}
+				responses = append(responses, currentResponseDef)
+			}
+
+		}
+		return responses
 	default:
 		log.Printf("mapToResponseDef: component with role is ignored: %s [%s]", rItem.Role, key)
 		return []ResponseDef{}
@@ -331,6 +401,13 @@ func getQuestionType(responses []ResponseDef) string {
 	} else {
 		// mixed or map to something specific (e.g., if all the same...)
 		qType = responses[0].ResponseType
+
+		// Check for matrix questions:
+		if strings.Contains(qType, QUESTION_TYPE_MATRIX) {
+			return QUESTION_TYPE_MATRIX
+		}
+
+		// Check for other questions, that contain same subtype
 		for _, r := range responses {
 			if qType != r.ResponseType {
 				return QUESTION_TYPE_UNKNOWN

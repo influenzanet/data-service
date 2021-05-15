@@ -398,11 +398,7 @@ func TestExtractResponses(t *testing.T) {
 							{Key: "2", Role: "option"},
 							{Key: "3", Role: "option"},
 						}},
-						{Key: "c3", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
-							{Key: "1", Role: "option"},
-							{Key: "2", Role: "option"},
-							{Key: "3", Role: "option"},
-						}},
+						{Key: "c3", Role: "check"},
 					}},
 					{Key: "r2", Role: "responseRow", Items: []*studyAPI.ItemComponent{
 						{Key: "c1", Role: "label"},
@@ -411,17 +407,18 @@ func TestExtractResponses(t *testing.T) {
 							{Key: "2", Role: "option"},
 							{Key: "3", Role: "option"},
 						}},
-						{Key: "c3", Role: "dropDownGroup", Items: []*studyAPI.ItemComponent{
-							{Key: "1", Role: "option"},
-							{Key: "2", Role: "option"},
-							{Key: "3", Role: "option"},
-						}},
+						{Key: "c3", Role: "input"},
+					}},
+					{Key: "r3", Role: "radioRow", Items: []*studyAPI.ItemComponent{
+						{Key: "c1", Role: "label"},
+						{Key: "c2", Role: "option"},
+						{Key: "c3", Role: "option"},
 					}},
 				}},
 			},
 		}
 		ro, qType := extractResponses(rg, testLang)
-		if len(ro) != 4 {
+		if len(ro) != 5 {
 			t.Error("shouldn't be empty")
 		}
 		if qType != QUESTION_TYPE_MATRIX {
