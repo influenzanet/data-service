@@ -2,13 +2,18 @@ package response_parser
 
 import (
 	"errors"
+	"log"
+	"strings"
 
 	studyAPI "github.com/influenzanet/study-service/pkg/api"
 )
 
 type responseParser struct {
-	surveyVersions []SurveyVersionPreview
-	responses      []ParsedResponse
+	surveyKey         string
+	surveyVersions    []SurveyVersionPreview
+	responses         []ParsedResponse
+	shortQuestionKeys bool
+	shortResponseKeys bool
 }
 
 func NewResponseParser(
@@ -17,13 +22,16 @@ func NewResponseParser(
 	shortQuestionKeys bool,
 	shortResponseKeys bool,
 ) (*responseParser, error) {
-	if surveyDef == nil || surveyDef.Current == nil {
+	if surveyDef == nil || surveyDef.Current == nil || surveyDef.Current.SurveyDefinition == nil {
 		return nil, errors.New("current survey definition not found")
 	}
 
 	rp := responseParser{
-		surveyVersions: []SurveyVersionPreview{},
-		responses:      []ParsedResponse{},
+		surveyKey:         surveyDef.Current.SurveyDefinition.Key,
+		surveyVersions:    []SurveyVersionPreview{},
+		responses:         []ParsedResponse{},
+		shortQuestionKeys: shortQuestionKeys,
+		shortResponseKeys: shortResponseKeys,
 	}
 
 	rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(surveyDef.Current, previewLang))
@@ -31,19 +39,43 @@ func NewResponseParser(
 		rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(v, previewLang))
 	}
 
-	return &rp, errors.New("unimplemented")
+	if shortQuestionKeys && shortResponseKeys {
+		for versionInd, sv := range rp.surveyVersions {
+			for qInd, question := range sv.Questions {
+				if shortQuestionKeys {
+					rp.surveyVersions[versionInd].Questions[qInd].ID = strings.TrimPrefix(question.ID, rp.surveyKey+".")
+				}
+
+				if shortResponseKeys {
+					for rInd, resp := range question.Responses {
+						rIDparts := strings.Split(resp.ID, ".")
+						rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].ID = rIDparts[len(rIDparts)-1]
+
+						for oInd, option := range resp.Options {
+							oIDparts := strings.Split(option.ID, ".")
+							rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].Options[oInd].ID = oIDparts[len(oIDparts)-1]
+						}
+					}
+				}
+			}
+
+		}
+	}
+	log.Println(rp.GetSurveyVersionDefs())
+
+	return &rp, errors.New("test")
 }
 
 func (rp *responseParser) Parse() error {
 	return errors.New("unimplemented")
 }
 
-func (rp responseParser) GetSurveyDef() error {
-	return errors.New("unimplemented")
+func (rp responseParser) GetSurveyVersionDefs() []SurveyVersionPreview {
+	return rp.surveyVersions
 }
 
-func (rp responseParser) GetResponses() error {
-	return errors.New("unimplemented")
+func (rp responseParser) GetResponses() []ParsedResponse {
+	return rp.responses
 }
 
 func (rp responseParser) GetMeta() error {

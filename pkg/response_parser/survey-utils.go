@@ -123,32 +123,6 @@ func extractResponses(rg *studyAPI.ItemComponent, lang string) ([]ResponseDef, s
 	}
 
 	qType := getQuestionType(responses)
-
-	/*
-		if qType == QUESTION_TYPE_SINGLE_CHOICE {
-			// TODO:
-		} else if qType == QUESTION_TYPE_MULTIPLE_CHOICE {
-			// TODO:
-		} else if qType == QUESTION_TYPE_LIKERT_GROUP {
-			// TODO:
-		} else if qType == QUESTION_TYPE_DATE {
-			// TODO:
-		} else if qType == QUESTION_TYPE_INPUT {
-			// TODO:
-		} else if qType == QUESTION_TYPE_NUMBER_INPUT {
-			// TODO:
-		} else if qType == QUESTION_TYPE_EQ5D_SLIDER {
-			// TODO:
-		} else if qType == QUESTION_TYPE_NUMERIC_SLIDER {
-			// TODO:
-		} else if qType == QUESTION_TYPE_DROPDOWN_GROUP {
-			// TODO:
-		} else if qType == QUESTION_TYPE_MATRIX {
-			// TODO:
-		} else {
-			// TODO
-		}
-	*/
 	return responses, qType
 
 }
@@ -201,7 +175,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 			}
 			switch o.Role {
 			case "option":
-				option.OptionType = OPTION_TYPE_RADIO
+				option.OptionType = OPTION_TYPE_CHECKBOX
 			case "input":
 				option.OptionType = OPTION_TYPE_TEXT_INPUT
 			case "dateInput":
@@ -289,27 +263,21 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 		return []ResponseDef{responseDef}
 	case "likertGroup":
 		responses := []ResponseDef{}
-		for _, g := range rItem.Items {
-			if g.Role != "likert" {
+		for _, likertComp := range rItem.Items {
+			if likertComp.Role != "likert" {
 				continue
 			}
-			subKey := key + "." + g.Key
+			subKey := key + "." + likertComp.Key
 			currentResponseDef := ResponseDef{
 				ID:           subKey,
 				ResponseType: QUESTION_TYPE_LIKERT,
 			}
-
-			label, err := getTranslation(g.Content, lang)
-			if err != nil {
-				log.Printf("mapToResponseDef: label not found for: %v", g)
-			}
-			for _, o := range g.Items {
+			for _, o := range likertComp.Items {
 				option := ResponseOption{
-					ID:    subKey + "." + o.Key,
-					Label: label,
+					ID: subKey + "." + o.Key,
 				}
 				option.OptionType = OPTION_TYPE_RADIO
-				currentResponseDef.Options = append(responseDef.Options, option)
+				currentResponseDef.Options = append(currentResponseDef.Options, option)
 			}
 			responses = append(responses, currentResponseDef)
 		}
@@ -336,7 +304,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 								Label: dL,
 							}
 							option.OptionType = OPTION_TYPE_DROPDOWN_OPTION
-							currentResponseDef.Options = append(responseDef.Options, option)
+							currentResponseDef.Options = append(currentResponseDef.Options, option)
 						}
 						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_DROPDOWN
 					} else if col.Role == "input" {
@@ -378,7 +346,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 							ID: rowKey + "." + o.Key,
 						}
 						option.OptionType = OPTION_TYPE_RADIO
-						currentResponseDef.Options = append(responseDef.Options, option)
+						currentResponseDef.Options = append(currentResponseDef.Options, option)
 					}
 				}
 				responses = append(responses, currentResponseDef)
