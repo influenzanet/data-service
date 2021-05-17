@@ -3,6 +3,7 @@ package response_parser
 import (
 	"errors"
 	"log"
+	"strconv"
 	"strings"
 
 	studyAPI "github.com/influenzanet/study-service/pkg/api"
@@ -66,7 +67,30 @@ func NewResponseParser(
 	return &rp, errors.New("test")
 }
 
-func (rp *responseParser) Parse() error {
+func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
+	parsedResponse := ParsedResponse{
+		ParticipantID: rawResp.ParticipantId,
+		Version:       rawResp.VersionId,
+		SubmittedAt:   rawResp.SubmittedAt,
+		Context:       rawResp.Context,
+	}
+
+	currentVersion, err := findSurveyVersion(rawResp.VersionId, rawResp.SubmittedAt, rp.surveyVersions)
+	if err != nil {
+		return err
+	}
+
+	// TODO: interpret response  from DB
+	log.Println(currentVersion)
+
+	key := "test"
+	index := 0
+	parsedResponse.Meta.Initialised[key] = timestampsToStr(rawResp.Responses[index].Meta.Rendered)
+	parsedResponse.Meta.Displayed[key] = timestampsToStr(rawResp.Responses[index].Meta.Displayed)
+	parsedResponse.Meta.Responded[key] = timestampsToStr(rawResp.Responses[index].Meta.Responded)
+	parsedResponse.Meta.ItemVersion[key] = strconv.Itoa(int(rawResp.Responses[index].Meta.Version))
+
+	rp.responses = append(rp.responses, parsedResponse)
 	return errors.New("unimplemented")
 }
 

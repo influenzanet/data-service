@@ -60,6 +60,14 @@ type ParsedResponse struct {
 	ParticipantID string
 	SubmittedAt   int64
 	Version       string
-	Language      string
+	Context       map[string]string // e.g. Language, or engine version
 	Responses     map[string]string
+	Meta          ResponseMeta
+}
+
+type ResponseMeta struct {
+	Initialised map[string]string
+	Displayed   map[string]string
+	Responded   map[string]string
+	ItemVersion map[string]string
 }
