@@ -281,11 +281,99 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_LIKERT with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_LIKERT,
+			Responses: []ResponseDef{
+				{ID: "likert", ResponseType: QUESTION_TYPE_LIKERT, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_RADIO},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "likert",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+		if cols["test"] != "1" {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_LIKERT group with response", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_LIKERT,
+			Responses: []ResponseDef{
+				{ID: "likert1", ResponseType: QUESTION_TYPE_LIKERT, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_RADIO},
+				}},
+				{ID: "likert2", ResponseType: QUESTION_TYPE_LIKERT, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_RADIO},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "likert1",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+						},
+					},
+					{Key: "likert2",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "3"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+		if cols["test-likert1"] != "1" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_LIKERT without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_LIKERT,
+			Responses: []ResponseDef{
+				{ID: "likert1", ResponseType: QUESTION_TYPE_LIKERT, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_RADIO},
+				}},
+				{ID: "likert2", ResponseType: QUESTION_TYPE_LIKERT, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_RADIO},
+				}},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_EQ5D_SLIDER with response", func(t *testing.T) {
