@@ -2,6 +2,8 @@ package response_parser
 
 import (
 	"testing"
+
+	studyAPI "github.com/influenzanet/study-service/pkg/api"
 )
 
 func TestFindSurveyVersion(t *testing.T) {
@@ -62,6 +64,308 @@ func TestFindSurveyVersion(t *testing.T) {
 		}
 		if sv.VersionID != "id2" {
 			t.Errorf("unexpected version: %v", sv)
+		}
+	})
+}
+
+func TestGetResponseColumns(t *testing.T) {
+
+	t.Run("QUESTION_TYPE_EMPTY", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_EMPTY,
+			Responses:    []ResponseDef{},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+		})
+		if len(cols) > 0 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_SINGLE_CHOICE with response", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_SINGLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "scg", ResponseType: QUESTION_TYPE_SINGLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1", Value: "hello"},
+						},
+					},
+				},
+			},
+		})
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+		if cols["test"] != "1" {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_SINGLE_CHOICE without response", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_SINGLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "scg", ResponseType: QUESTION_TYPE_SINGLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+			},
+		}, nil)
+		if len(cols) != 3 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_SINGLE_CHOICE multiple response groups", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_SINGLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "scg1", ResponseType: QUESTION_TYPE_SINGLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+				{ID: "scg2", ResponseType: QUESTION_TYPE_SINGLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg1",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "4", Value: "hello"},
+						},
+					},
+				},
+			},
+		})
+		if len(cols) != 6 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_MULTIPLE_CHOICE with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_MULTIPLE_CHOICE without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_TEXT_INPUT with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_TEXT_INPUT without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_NUMBER_INPUT with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_NUMBER_INPUT without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_DATE_INPUT with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_DATE_INPUT without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_DROPDOWN with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_DROPDOWN without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_LIKERT with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_LIKERT without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_EQ5D_SLIDER with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_EQ5D_SLIDER without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_NUMERIC_SLIDER with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_NUMERIC_SLIDER without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_MATRIX with response", func(t *testing.T) {
+		/*QUESTION_TYPE_MATRIX_RADIO_ROW = "matrix_radio_row"
+		QUESTION_TYPE_MATRIX_DROPDOWN = "matrix_dropdown"
+		QUESTION_TYPE_MATRIX_INPUT = "matrix_input"
+		QUESTION_TYPE_MATRIX_NUMBER_INPUT = "matrix_number_input"
+		QUESTION_TYPE_MATRIX_CHECKBOX = "matrix_checkbox"*/
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_MATRIX without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_UNKNOWN with response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+
+	t.Run("QUESTION_TYPE_UNKNOWN without response", func(t *testing.T) {
+		t.Error("test unimplemented")
+	})
+}
+
+func TestRetrieveResponseItem(t *testing.T) {
+	t.Run("nil input", func(t *testing.T) {
+		r := retrieveResponseItem(nil, "")
+		if r != nil {
+			t.Errorf("unexpected result: %v", r)
+		}
+	})
+
+	t.Run("retrieve root", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "input"},
+				},
+			},
+		}, "rg")
+		if r == nil {
+			t.Error("should find result")
+		}
+	})
+
+	t.Run("retrieve group", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg", Items: []*studyAPI.ResponseItem{
+						{Key: "1"},
+						{Key: "2"},
+					}},
+				},
+			},
+		}, "rg.scg")
+		if r == nil {
+			t.Error("should find result")
+			return
+		}
+		if r.Key != "scg" || len(r.Items) != 2 {
+			t.Errorf("unexpected result: %v", r)
+		}
+	})
+
+	t.Run("retrieve item", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg", Items: []*studyAPI.ResponseItem{
+						{Key: "1"},
+						{Key: "2"},
+					}},
+				},
+			},
+		}, "rg.scg.1")
+		if r == nil {
+			t.Error("should find result")
+			return
+		}
+		if r.Key != "1" || len(r.Items) != 0 {
+			t.Errorf("unexpected result: %v", r)
+		}
+	})
+
+	t.Run("wrong first key", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg", Items: []*studyAPI.ResponseItem{
+						{Key: "1"},
+						{Key: "2"},
+					}},
+				},
+			},
+		}, "wrong.scg.1")
+		if r != nil {
+			t.Errorf("unexpected result: %v", r)
+		}
+	})
+
+	t.Run("wrong middle key", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg", Items: []*studyAPI.ResponseItem{
+						{Key: "1"},
+						{Key: "2"},
+					}},
+				},
+			},
+		}, "rg.wrong.1")
+		if r != nil {
+			t.Errorf("unexpected result: %v", r)
+		}
+	})
+
+	t.Run("wrong last key", func(t *testing.T) {
+		r := retrieveResponseItem(&studyAPI.SurveyItemResponse{
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "scg", Items: []*studyAPI.ResponseItem{
+						{Key: "1"},
+						{Key: "2"},
+					}},
+				},
+			},
+		}, "rg.scg.wrong")
+		if r != nil {
+			t.Errorf("unexpected result: %v", r)
 		}
 	})
 }

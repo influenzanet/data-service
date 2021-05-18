@@ -13,6 +13,8 @@ type responseParser struct {
 	surveyKey         string
 	surveyVersions    []SurveyVersionPreview
 	responses         []ParsedResponse
+	responseColNames  []string
+	metaColNames      []string
 	shortQuestionKeys bool
 	shortResponseKeys bool
 }
@@ -62,7 +64,6 @@ func NewResponseParser(
 
 		}
 	}
-	log.Println(rp.GetSurveyVersionDefs())
 
 	return &rp, errors.New("test")
 }
@@ -83,22 +84,71 @@ func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 	// TODO: interpret response  from DB
 	log.Println(currentVersion)
 
-	key := "test"
-	index := 0
-	parsedResponse.Meta.Initialised[key] = timestampsToStr(rawResp.Responses[index].Meta.Rendered)
-	parsedResponse.Meta.Displayed[key] = timestampsToStr(rawResp.Responses[index].Meta.Displayed)
-	parsedResponse.Meta.Responded[key] = timestampsToStr(rawResp.Responses[index].Meta.Responded)
-	parsedResponse.Meta.ItemVersion[key] = strconv.Itoa(int(rawResp.Responses[index].Meta.Version))
+	if rp.shortQuestionKeys {
+		for i, r := range rawResp.Responses {
+			rawResp.Responses[i].Key = strings.TrimPrefix(r.Key, rp.surveyKey+".")
+		}
+	}
+
+	for _, question := range currentVersion.Questions {
+		log.Println(question)
+
+		resp := findResponse(rawResp.Responses, question.ID)
+
+		// TODO: parse question
+		responseColumns := getResponseColumns(question, resp)
+		for k, v := range responseColumns {
+			parsedResponse.Responses[k] = v
+		}
+
+		// Set meta infos
+		parsedResponse.Meta.Initialised[question.ID] = ""
+		parsedResponse.Meta.Displayed[question.ID] = ""
+		parsedResponse.Meta.Responded[question.ID] = ""
+		parsedResponse.Meta.ItemVersion[question.ID] = ""
+		arraySep := ";"
+		if resp != nil && resp.Meta != nil {
+			parsedResponse.Meta.Initialised[question.ID] = timestampsToStr(resp.Meta.Rendered, arraySep)
+			parsedResponse.Meta.Displayed[question.ID] = timestampsToStr(resp.Meta.Displayed, arraySep)
+			parsedResponse.Meta.Responded[question.ID] = timestampsToStr(resp.Meta.Responded, arraySep)
+			parsedResponse.Meta.ItemVersion[question.ID] = strconv.Itoa(int(resp.Meta.Version))
+		}
+		rp.AddMetaColName(question.ID)
+	}
+
+	// Extend response col names:
+	for k := range parsedResponse.Responses {
+		rp.AddResponseColName(k)
+	}
 
 	rp.responses = append(rp.responses, parsedResponse)
 	return errors.New("unimplemented")
+}
+
+func (rp *responseParser) AddResponseColName(name string) {
+	for _, n := range rp.responseColNames {
+		if n == name {
+			return
+		}
+	}
+	rp.responseColNames = append(rp.responseColNames, name)
+}
+
+func (rp *responseParser) AddMetaColName(name string) {
+	for _, n := range rp.metaColNames {
+		if n == name {
+			return
+		}
+	}
+	rp.metaColNames = append(rp.metaColNames, name)
 }
 
 func (rp responseParser) GetSurveyVersionDefs() []SurveyVersionPreview {
 	return rp.surveyVersions
 }
 
-func (rp responseParser) GetResponses() []ParsedResponse {
+func (rp responseParser) GetResponsesCSV() []ParsedResponse {
+	// TODO: merge context and responses keys
 	return rp.responses
 }
 
