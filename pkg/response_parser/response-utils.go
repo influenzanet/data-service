@@ -78,13 +78,16 @@ func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemRe
 		return processResponseForMultipleChoice(question, response, questionOptionSep)
 	case QUESTION_TYPE_TEXT_INPUT:
 		return processResponseForInputs(question, response, questionOptionSep)
+	case QUESTION_TYPE_DATE_INPUT:
+		return processResponseForInputs(question, response, questionOptionSep)
+	case QUESTION_TYPE_NUMBER_INPUT:
+		return processResponseForInputs(question, response, questionOptionSep)
+	case QUESTION_TYPE_NUMERIC_SLIDER:
+		return processResponseForInputs(question, response, questionOptionSep)
+	case QUESTION_TYPE_EQ5D_SLIDER:
+		return processResponseForInputs(question, response, questionOptionSep)
 		// TODO
 		/*
-			QUESTION_TYPE_TEXT_INPUT          = "text"
-			QUESTION_TYPE_NUMBER_INPUT        = "number"
-			QUESTION_TYPE_DATE_INPUT          = "date"
-			QUESTION_TYPE_EQ5D_SLIDER         = "eq5d_slider"
-			QUESTION_TYPE_NUMERIC_SLIDER      = "slider"
 			QUESTION_TYPE_MATRIX              = "matrix"
 			QUESTION_TYPE_MATRIX_RADIO_ROW    = "matrix_radio_row"
 			QUESTION_TYPE_MATRIX_DROPDOWN     = "matrix_dropdown"
@@ -262,7 +265,7 @@ func processResponseForInputs(question SurveyQuestion, response *studyAPI.Survey
 	} else {
 		responseCols = handleInputList(question.ID, question.Responses, response, questionOptionSep)
 	}
-	log.Println(responseCols)
+
 	return responseCols
 }
 

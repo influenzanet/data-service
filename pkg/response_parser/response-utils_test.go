@@ -323,19 +323,81 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_NUMBER_INPUT with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_NUMBER_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp", ResponseType: QUESTION_TYPE_NUMBER_INPUT}},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp", Value: "1327", Dtype: "number"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test"] != "1327" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_NUMBER_INPUT without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_NUMBER_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_NUMBER_INPUT},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_NUMBER_INPUT},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
 	})
 
 	t.Run("QUESTION_TYPE_DATE_INPUT with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_DATE_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp", ResponseType: QUESTION_TYPE_DATE_INPUT}},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp", Value: "1327", Dtype: "date"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test"] != "1327" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_DATE_INPUT without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_DATE_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_DATE_INPUT},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_DATE_INPUT},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
 	})
 
 	t.Run("QUESTION_TYPE_DROPDOWN with response", func(t *testing.T) {
@@ -514,19 +576,81 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_EQ5D_SLIDER with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_EQ5D_SLIDER,
+			Responses: []ResponseDef{
+				{ID: "inp", ResponseType: QUESTION_TYPE_EQ5D_SLIDER}},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp", Value: "1327"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test"] != "1327" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_EQ5D_SLIDER without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_EQ5D_SLIDER,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_EQ5D_SLIDER},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_EQ5D_SLIDER},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
 	})
 
 	t.Run("QUESTION_TYPE_NUMERIC_SLIDER with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_NUMERIC_SLIDER,
+			Responses: []ResponseDef{
+				{ID: "inp", ResponseType: QUESTION_TYPE_NUMERIC_SLIDER}},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp", Value: "1327"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test"] != "1327" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_NUMERIC_SLIDER without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_NUMERIC_SLIDER,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_NUMERIC_SLIDER},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_NUMERIC_SLIDER},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
 	})
 
 	t.Run("QUESTION_TYPE_MATRIX with response", func(t *testing.T) {
