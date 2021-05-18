@@ -69,6 +69,7 @@ func TestFindSurveyVersion(t *testing.T) {
 }
 
 func TestGetResponseColumns(t *testing.T) {
+	questionOptionSep := "-"
 
 	t.Run("QUESTION_TYPE_EMPTY", func(t *testing.T) {
 		cols := getResponseColumns(SurveyQuestion{
@@ -77,7 +78,7 @@ func TestGetResponseColumns(t *testing.T) {
 			Responses:    []ResponseDef{},
 		}, &studyAPI.SurveyItemResponse{
 			Key: "test",
-		})
+		}, questionOptionSep)
 		if len(cols) > 0 {
 			t.Errorf("unexpected results: %v", cols)
 		}
@@ -105,7 +106,7 @@ func TestGetResponseColumns(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, questionOptionSep)
 		if len(cols) != 2 {
 			t.Errorf("unexpected results: %v", cols)
 		}
@@ -126,7 +127,7 @@ func TestGetResponseColumns(t *testing.T) {
 					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
 				}},
 			},
-		}, nil)
+		}, nil, questionOptionSep)
 		if len(cols) != 3 {
 			t.Errorf("unexpected results: %v", cols)
 		}
@@ -162,7 +163,7 @@ func TestGetResponseColumns(t *testing.T) {
 					},
 				},
 			},
-		})
+		}, questionOptionSep)
 		if len(cols) != 6 {
 			t.Errorf("unexpected results: %v", cols)
 		}
@@ -201,11 +202,82 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_DROPDOWN with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_DROPDOWN,
+			Responses: []ResponseDef{
+				{ID: "ddg", ResponseType: QUESTION_TYPE_DROPDOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+					{ID: "2", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "ddg",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+		if cols["test"] != "1" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_DROPDOWN without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_DROPDOWN,
+			Responses: []ResponseDef{
+				{ID: "ddg", ResponseType: QUESTION_TYPE_DROPDOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+					{ID: "2", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+				}},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_DROPDOWN group", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_DROPDOWN,
+			Responses: []ResponseDef{
+				{ID: "ddg1", ResponseType: QUESTION_TYPE_DROPDOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+					{ID: "2", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+				}},
+				{ID: "ddg2", ResponseType: QUESTION_TYPE_DROPDOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+					{ID: "2", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "ddg1",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_LIKERT with response", func(t *testing.T) {

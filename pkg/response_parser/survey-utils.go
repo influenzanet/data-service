@@ -133,7 +133,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 		return []ResponseDef{}
 	}
 
-	key := parentKey + "." + rItem.Key
+	key := rItem.Key
 	responseDef := ResponseDef{
 		ID: key,
 	}
@@ -146,7 +146,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 				log.Printf("mapToResponseDef: label not found for: %v", o)
 			}
 			option := ResponseOption{
-				ID:    key + "." + o.Key,
+				ID:    o.Key,
 				Label: label,
 			}
 			switch o.Role {
@@ -170,7 +170,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 				log.Printf("mapToResponseDef: label not found for: %v", o)
 			}
 			option := ResponseOption{
-				ID:    key + "." + o.Key,
+				ID:    o.Key,
 				Label: label,
 			}
 			switch o.Role {
@@ -194,10 +194,10 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 				log.Printf("mapToResponseDef: label not found for: %v", o)
 			}
 			option := ResponseOption{
-				ID:    key + "." + o.Key,
+				ID:    o.Key,
 				Label: label,
 			}
-			option.OptionType = OPTION_TYPE_RADIO
+			option.OptionType = OPTION_TYPE_DROPDOWN_OPTION
 			responseDef.Options = append(responseDef.Options, option)
 		}
 		responseDef.ResponseType = QUESTION_TYPE_DROPDOWN
@@ -253,7 +253,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 				log.Printf("mapToResponseDef: label not found for: %v", o)
 			}
 			option := ResponseOption{
-				ID:    key + "." + o.Key,
+				ID:    o.Key,
 				Label: label,
 			}
 			option.OptionType = OPTION_TYPE_RADIO
@@ -267,14 +267,14 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 			if likertComp.Role != "likert" {
 				continue
 			}
-			subKey := key + "." + likertComp.Key
+			subKey := likertComp.Key
 			currentResponseDef := ResponseDef{
 				ID:           subKey,
 				ResponseType: QUESTION_TYPE_LIKERT,
 			}
 			for _, o := range likertComp.Items {
 				option := ResponseOption{
-					ID: subKey + "." + o.Key,
+					ID: o.Key,
 				}
 				option.OptionType = OPTION_TYPE_RADIO
 				currentResponseDef.Options = append(currentResponseDef.Options, option)
@@ -286,7 +286,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 	case "matrix":
 		responses := []ResponseDef{}
 		for _, row := range rItem.Items {
-			rowKey := key + "." + row.Key
+			rowKey := row.Key
 			if row.Role == "responseRow" {
 				for _, col := range row.Items {
 					cellKey := rowKey + "." + col.Key
@@ -300,7 +300,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 								log.Printf("mapToResponseDef: label not found for: %v", o)
 							}
 							option := ResponseOption{
-								ID:    cellKey + "." + o.Key,
+								ID:    o.Key,
 								Label: dL,
 							}
 							option.OptionType = OPTION_TYPE_DROPDOWN_OPTION
@@ -343,7 +343,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 						currentResponseDef.Label = label
 					} else {
 						option := ResponseOption{
-							ID: rowKey + "." + o.Key,
+							ID: o.Key,
 						}
 						option.OptionType = OPTION_TYPE_RADIO
 						currentResponseDef.Options = append(currentResponseDef.Options, option)

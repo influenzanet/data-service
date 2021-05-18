@@ -10,31 +10,31 @@ import (
 )
 
 type responseParser struct {
-	surveyKey         string
-	surveyVersions    []SurveyVersionPreview
-	responses         []ParsedResponse
-	responseColNames  []string
-	metaColNames      []string
-	shortQuestionKeys bool
-	shortResponseKeys bool
+	surveyKey            string
+	surveyVersions       []SurveyVersionPreview
+	responses            []ParsedResponse
+	responseColNames     []string
+	metaColNames         []string
+	shortQuestionKeys    bool
+	questionOptionKeySep string
 }
 
 func NewResponseParser(
 	surveyDef *studyAPI.Survey,
 	previewLang string,
 	shortQuestionKeys bool,
-	shortResponseKeys bool,
+	questionOptionSep string,
 ) (*responseParser, error) {
 	if surveyDef == nil || surveyDef.Current == nil || surveyDef.Current.SurveyDefinition == nil {
 		return nil, errors.New("current survey definition not found")
 	}
 
 	rp := responseParser{
-		surveyKey:         surveyDef.Current.SurveyDefinition.Key,
-		surveyVersions:    []SurveyVersionPreview{},
-		responses:         []ParsedResponse{},
-		shortQuestionKeys: shortQuestionKeys,
-		shortResponseKeys: shortResponseKeys,
+		surveyKey:            surveyDef.Current.SurveyDefinition.Key,
+		surveyVersions:       []SurveyVersionPreview{},
+		responses:            []ParsedResponse{},
+		shortQuestionKeys:    shortQuestionKeys,
+		questionOptionKeySep: questionOptionSep,
 	}
 
 	rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(surveyDef.Current, previewLang))
@@ -42,29 +42,27 @@ func NewResponseParser(
 		rp.surveyVersions = append(rp.surveyVersions, surveyDefToVersionPreview(v, previewLang))
 	}
 
-	if shortQuestionKeys && shortResponseKeys {
-		for versionInd, sv := range rp.surveyVersions {
-			for qInd, question := range sv.Questions {
-				if shortQuestionKeys {
-					rp.surveyVersions[versionInd].Questions[qInd].ID = strings.TrimPrefix(question.ID, rp.surveyKey+".")
-				}
-
-				if shortResponseKeys {
-					for rInd, resp := range question.Responses {
-						rIDparts := strings.Split(resp.ID, ".")
-						rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].ID = rIDparts[len(rIDparts)-1]
-
-						for oInd, option := range resp.Options {
-							oIDparts := strings.Split(option.ID, ".")
-							rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].Options[oInd].ID = oIDparts[len(oIDparts)-1]
-						}
-					}
-				}
+	for versionInd, sv := range rp.surveyVersions {
+		for qInd, question := range sv.Questions {
+			if shortQuestionKeys {
+				rp.surveyVersions[versionInd].Questions[qInd].ID = strings.TrimPrefix(question.ID, rp.surveyKey+".")
 			}
 
-		}
-	}
+			//if shortResponseKeys {
+			/*for rInd, resp := range question.Responses {
+				rIDparts := strings.Split(resp.ID, ".")
+				rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].ID = rIDparts[len(rIDparts)-1]
 
+				for oInd, option := range resp.Options {
+					oIDparts := strings.Split(option.ID, ".")
+					rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].Options[oInd].ID = oIDparts[len(oIDparts)-1]
+				}
+			}*/
+
+		}
+
+	}
+	log.Println(rp.surveyVersions)
 	return &rp, errors.New("test")
 }
 
@@ -96,7 +94,7 @@ func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 		resp := findResponse(rawResp.Responses, question.ID)
 
 		// TODO: parse question
-		responseColumns := getResponseColumns(question, resp)
+		responseColumns := getResponseColumns(question, resp, rp.questionOptionKeySep)
 		for k, v := range responseColumns {
 			parsedResponse.Responses[k] = v
 		}

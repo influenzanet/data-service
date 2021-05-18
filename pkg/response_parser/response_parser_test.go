@@ -17,6 +17,7 @@ import (
 
 func TestResponseParser(t *testing.T) {
 	testLang := "en"
+	questionOptionSep := "-"
 	testSurveyDef := &studyAPI.SurveyItem{
 		Key: "weekly",
 		Items: []*studyAPI.SurveyItem{
@@ -42,7 +43,7 @@ func TestResponseParser(t *testing.T) {
 	}
 
 	t.Run("with with missing surveyDef", func(t *testing.T) {
-		_, err := NewResponseParser(nil, "en", true, true)
+		_, err := NewResponseParser(nil, "en", true, questionOptionSep)
 		if err == nil {
 			t.Error("error expected")
 			return
@@ -60,7 +61,7 @@ func TestResponseParser(t *testing.T) {
 			History: []*studyAPI.SurveyVersion{},
 		}
 
-		_, err := NewResponseParser(&testSurvey, "en", true, true)
+		_, err := NewResponseParser(&testSurvey, "en", true, questionOptionSep)
 		if err == nil {
 			t.Error("error expected")
 			return
@@ -81,7 +82,7 @@ func TestResponseParser(t *testing.T) {
 			},
 		}
 
-		rp, err := NewResponseParser(&testSurvey, "en", true, true)
+		rp, err := NewResponseParser(&testSurvey, "en", true, questionOptionSep)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 			return
@@ -121,7 +122,7 @@ func TestResponseParser(t *testing.T) {
 			},
 		}
 
-		rp, err := NewResponseParser(&testSurvey, "en", true, true)
+		rp, err := NewResponseParser(&testSurvey, "en", true, questionOptionSep)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 			return

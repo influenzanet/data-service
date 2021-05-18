@@ -66,70 +66,114 @@ func findResponse(responses []*studyAPI.SurveyItemResponse, key string) *studyAP
 	return nil
 }
 
-func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemResponse) map[string]string {
+func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
 	switch question.QuestionType {
 	case QUESTION_TYPE_SINGLE_CHOICE:
-		return generateResponseForSingleChoice(question, response)
+		return generateResponseForSingleChoice(question, response, questionOptionSep)
+	case QUESTION_TYPE_DROPDOWN:
+		return generateResponseForSingleChoice(question, response, questionOptionSep)
+	case QUESTION_TYPE_LIKERT:
+		return generateResponseForSingleChoice(question, response, questionOptionSep)
+		// TODO
+		/*
+			QUESTION_TYPE_SINGLE_CHOICE       = "single_choice"
+				QUESTION_TYPE_MULTIPLE_CHOICE     = "multiple_choice"
+				QUESTION_TYPE_TEXT_INPUT          = "text"
+				QUESTION_TYPE_NUMBER_INPUT        = "number"
+				QUESTION_TYPE_DATE_INPUT          = "date"
+				QUESTION_TYPE_EQ5D_SLIDER         = "eq5d_slider"
+				QUESTION_TYPE_NUMERIC_SLIDER      = "slider"
+				QUESTION_TYPE_MATRIX              = "matrix"
+				QUESTION_TYPE_MATRIX_RADIO_ROW    = "matrix_radio_row"
+				QUESTION_TYPE_MATRIX_DROPDOWN     = "matrix_dropdown"
+				QUESTION_TYPE_MATRIX_INPUT        = "matrix_input"
+				QUESTION_TYPE_MATRIX_NUMBER_INPUT = "matrix_number_input"
+				QUESTION_TYPE_MATRIX_CHECKBOX     = "matrix_checkbox"
+				QUESTION_TYPE_UNKNOWN             = "unknown"
+				QUESTION_TYPE_EMPTY               = "empty"
+		*/
 	default:
 		return map[string]string{}
 	}
 }
 
-func generateResponseForSingleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse) map[string]string {
+func generateResponseForSingleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	var responseCols map[string]string
+
+	if len(question.Responses) == 1 {
+		rSlot := question.Responses[0]
+		responseCols = handleSimpleSingleChoiceGroup(question.ID, rSlot, response, questionOptionSep)
+
+	} else {
+		responseCols = handleSingleChoiceGroupList(question.ID, question.Responses, response, questionOptionSep)
+	}
+	log.Println(responseCols)
+	return responseCols
+}
+
+func handleSimpleSingleChoiceGroup(questionKey string, responseSlotDef ResponseDef, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
 	responseCols := map[string]string{}
 
-	// Prepare response columns
-	if len(question.Responses) == 1 {
-		responseCols[question.ID] = ""
-		rSlot := question.Responses[0]
+	// Prepare columns:
+	responseCols[questionKey] = ""
 
-		for _, option := range rSlot.Options {
-			if option.OptionType != OPTION_TYPE_RADIO {
-				responseCols[question.ID+"-"+option.ID] = ""
-			}
-		}
-	} else {
-		for _, rSlot := range question.Responses {
-			responseCols[question.ID+"-"+rSlot.ID] = ""
-			for _, option := range rSlot.Options {
-				if option.OptionType != OPTION_TYPE_RADIO {
-					responseCols[question.ID+"-"+rSlot.ID+"."+option.ID] = ""
-				}
-			}
+	for _, option := range responseSlotDef.Options {
+		if option.OptionType != OPTION_TYPE_RADIO &&
+			option.OptionType != OPTION_TYPE_DROPDOWN_OPTION {
+			responseCols[questionKey+questionOptionSep+option.ID] = ""
 		}
 	}
 
 	// Find responses
-	if len(question.Responses) == 1 {
-		responseCols[question.ID] = ""
-		rSlot := question.Responses[0]
-		rGroup := retrieveResponseItem(response, "rg."+rSlot.ID)
-		if rGroup != nil {
-			if len(rGroup.Items) != 1 {
-				log.Printf("unexpected response group for question %s: %v", question.ID, rGroup)
-			} else {
-				selection := rGroup.Items[0]
-				responseCols[question.ID] = selection.Key
-				responseCols[question.ID+"-"+selection.Key] = selection.Value
+	rGroup := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+responseSlotDef.ID)
+	if rGroup != nil {
+		if len(rGroup.Items) != 1 {
+			log.Printf("unexpected response group for question %s: %v", questionKey, rGroup)
+		} else {
+			selection := rGroup.Items[0]
+			responseCols[questionKey] = selection.Key
+
+			valueKey := questionKey + questionOptionSep + selection.Key
+			if _, hasKey := responseCols[valueKey]; hasKey {
+				responseCols[valueKey] = selection.Value
 			}
 		}
-	} else {
-		for _, rSlot := range question.Responses {
-			rGroup := retrieveResponseItem(response, "rg."+rSlot.ID)
-			if rGroup == nil {
-				continue
-			} else if len(rGroup.Items) != 1 {
-				log.Printf("unexpected response group for question %s: %v", question.ID, rGroup)
-				continue
-			}
+	}
+	return responseCols
+}
 
-			selection := rGroup.Items[0]
-			responseCols[question.ID+"-"+rSlot.ID] = selection.Key
-			responseCols[question.ID+"-"+rSlot.ID+"."+selection.Key] = selection.Value
+func handleSingleChoiceGroupList(questionKey string, responseSlotDefs []ResponseDef, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	responseCols := map[string]string{}
+
+	// Prepare columns:
+	for _, rSlot := range responseSlotDefs {
+		responseCols[questionKey+questionOptionSep+rSlot.ID] = ""
+		for _, option := range rSlot.Options {
+			if option.OptionType != OPTION_TYPE_RADIO &&
+				option.OptionType != OPTION_TYPE_DROPDOWN_OPTION {
+				responseCols[questionKey+questionOptionSep+rSlot.ID+"."+option.ID] = ""
+			}
 		}
 	}
 
-	log.Println(responseCols)
+	// Find responses:
+	for _, rSlot := range responseSlotDefs {
+		rGroup := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+rSlot.ID)
+		if rGroup == nil {
+			continue
+		} else if len(rGroup.Items) != 1 {
+			log.Printf("unexpected response group for question %s: %v", questionKey, rGroup)
+			continue
+		}
+
+		selection := rGroup.Items[0]
+		responseCols[questionKey+questionOptionSep+rSlot.ID] = selection.Key
+
+		valueKey := questionKey + questionOptionSep + rSlot.ID + "." + selection.Key
+		if _, hasKey := responseCols[valueKey]; hasKey {
+			responseCols[valueKey] = selection.Value
+		}
+	}
 	return responseCols
 }
 
@@ -162,23 +206,3 @@ func retrieveResponseItem(response *studyAPI.SurveyItemResponse, fullKey string)
 	}
 	return result
 }
-
-/*
-QUESTION_TYPE_SINGLE_CHOICE       = "single_choice"
-	QUESTION_TYPE_MULTIPLE_CHOICE     = "multiple_choice"
-	QUESTION_TYPE_TEXT_INPUT          = "text"
-	QUESTION_TYPE_NUMBER_INPUT        = "number"
-	QUESTION_TYPE_DATE_INPUT          = "date"
-	QUESTION_TYPE_DROPDOWN            = "dropdown"
-	QUESTION_TYPE_LIKERT              = "likert"
-	QUESTION_TYPE_EQ5D_SLIDER         = "eq5d_slider"
-	QUESTION_TYPE_NUMERIC_SLIDER      = "slider"
-	QUESTION_TYPE_MATRIX              = "matrix"
-	QUESTION_TYPE_MATRIX_RADIO_ROW    = "matrix_radio_row"
-	QUESTION_TYPE_MATRIX_DROPDOWN     = "matrix_dropdown"
-	QUESTION_TYPE_MATRIX_INPUT        = "matrix_input"
-	QUESTION_TYPE_MATRIX_NUMBER_INPUT = "matrix_number_input"
-	QUESTION_TYPE_MATRIX_CHECKBOX     = "matrix_checkbox"
-	QUESTION_TYPE_UNKNOWN             = "unknown"
-	QUESTION_TYPE_EMPTY               = "empty"
-*/

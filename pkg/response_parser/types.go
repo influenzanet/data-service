@@ -29,6 +29,10 @@ const (
 	OPTION_TYPE_NUMBER_INPUT    = "number"
 )
 
+const (
+	RESPONSE_ROOT_KEY = "rg"
+)
+
 type SurveyVersionPreview struct {
 	VersionID   string
 	Published   int64
