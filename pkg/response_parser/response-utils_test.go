@@ -170,11 +170,91 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_MULTIPLE_CHOICE with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_MULTIPLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "mcg", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "2", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "mcg",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+							{Key: "4", Value: "hello"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 4 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+		if cols["test-1"] != "TRUE" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_MULTIPLE_CHOICE without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_MULTIPLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "scg1", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "2", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 4 {
+			t.Errorf("unexpected results: %v", cols)
+		}
+	})
+
+	t.Run("QUESTION_TYPE_MULTIPLE_CHOICE with group", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_MULTIPLE_CHOICE,
+			Responses: []ResponseDef{
+				{ID: "mcg1", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "2", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+				{ID: "mcg2", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "2", OptionType: OPTION_TYPE_CHECKBOX},
+					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
+					{ID: "4", OptionType: OPTION_TYPE_DATE_INPUT},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "mcg1",
+						Items: []*studyAPI.ResponseItem{
+							{Key: "4", Value: "hello"},
+						},
+					},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 8 {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_TEXT_INPUT with response", func(t *testing.T) {
