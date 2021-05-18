@@ -258,11 +258,68 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_TEXT_INPUT with response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_TEXT_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp", ResponseType: QUESTION_TYPE_TEXT_INPUT}},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp", Value: "hello"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 1 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test"] != "hello" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_TEXT_INPUT without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_TEXT_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_TEXT_INPUT},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_TEXT_INPUT},
+			},
+		}, nil, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+	})
+
+	t.Run("QUESTION_TYPE_TEXT_INPUT group", func(t *testing.T) {
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_TEXT_INPUT,
+			Responses: []ResponseDef{
+				{ID: "inp1", ResponseType: QUESTION_TYPE_TEXT_INPUT},
+				{ID: "inp2", ResponseType: QUESTION_TYPE_TEXT_INPUT},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "inp1", Value: "hello"},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 2 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test-inp1"] != "hello" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_NUMBER_INPUT with response", func(t *testing.T) {

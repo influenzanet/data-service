@@ -69,16 +69,17 @@ func findResponse(responses []*studyAPI.SurveyItemResponse, key string) *studyAP
 func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
 	switch question.QuestionType {
 	case QUESTION_TYPE_SINGLE_CHOICE:
-		return generateResponseForSingleChoice(question, response, questionOptionSep)
+		return processResponseForSingleChoice(question, response, questionOptionSep)
 	case QUESTION_TYPE_DROPDOWN:
-		return generateResponseForSingleChoice(question, response, questionOptionSep)
+		return processResponseForSingleChoice(question, response, questionOptionSep)
 	case QUESTION_TYPE_LIKERT:
-		return generateResponseForSingleChoice(question, response, questionOptionSep)
+		return processResponseForSingleChoice(question, response, questionOptionSep)
 	case QUESTION_TYPE_MULTIPLE_CHOICE:
-		return generateResponseForMultipleChoice(question, response, questionOptionSep)
+		return processResponseForMultipleChoice(question, response, questionOptionSep)
+	case QUESTION_TYPE_TEXT_INPUT:
+		return processResponseForInputs(question, response, questionOptionSep)
 		// TODO
 		/*
-			QUESTION_TYPE_MULTIPLE_CHOICE     = "multiple_choice"
 			QUESTION_TYPE_TEXT_INPUT          = "text"
 			QUESTION_TYPE_NUMBER_INPUT        = "number"
 			QUESTION_TYPE_DATE_INPUT          = "date"
@@ -98,7 +99,7 @@ func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemRe
 	}
 }
 
-func generateResponseForSingleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+func processResponseForSingleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
 	var responseCols map[string]string
 
 	if len(question.Responses) == 1 {
@@ -108,7 +109,6 @@ func generateResponseForSingleChoice(question SurveyQuestion, response *studyAPI
 	} else {
 		responseCols = handleSingleChoiceGroupList(question.ID, question.Responses, response, questionOptionSep)
 	}
-	log.Println(responseCols)
 	return responseCols
 }
 
@@ -178,7 +178,7 @@ func handleSingleChoiceGroupList(questionKey string, responseSlotDefs []Response
 	return responseCols
 }
 
-func generateResponseForMultipleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+func processResponseForMultipleChoice(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
 	var responseCols map[string]string
 
 	if len(question.Responses) == 1 {
@@ -188,7 +188,6 @@ func generateResponseForMultipleChoice(question SurveyQuestion, response *studyA
 	} else {
 		responseCols = handleMultipleChoiceGroupList(question.ID, question.Responses, response, questionOptionSep)
 	}
-	log.Println(responseCols)
 	return responseCols
 }
 
@@ -247,6 +246,50 @@ func handleMultipleChoiceGroupList(questionKey string, responseSlotDefs []Respon
 				responseCols[slotKeyPrefix+option.ID] = ""
 			}
 
+		}
+	}
+
+	return responseCols
+}
+
+func processResponseForInputs(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	var responseCols map[string]string
+
+	if len(question.Responses) == 1 {
+		rSlot := question.Responses[0]
+		responseCols = handleSimpleInput(question.ID, rSlot, response, questionOptionSep)
+
+	} else {
+		responseCols = handleInputList(question.ID, question.Responses, response, questionOptionSep)
+	}
+	log.Println(responseCols)
+	return responseCols
+}
+
+func handleSimpleInput(questionKey string, responseSlotDef ResponseDef, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	responseCols := map[string]string{}
+	responseCols[questionKey] = ""
+
+	// Find responses
+	rValue := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+responseSlotDef.ID)
+	if rValue != nil {
+		responseCols[questionKey] = rValue.Value
+	}
+	return responseCols
+}
+
+func handleInputList(questionKey string, responseSlotDefs []ResponseDef, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	responseCols := map[string]string{}
+
+	for _, rSlot := range responseSlotDefs {
+		// Prepare columns:
+		slotKey := questionKey + questionOptionSep + rSlot.ID
+		responseCols[slotKey] = ""
+
+		// Find responses
+		rValue := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+rSlot.ID)
+		if rValue != nil {
+			responseCols[slotKey] = rValue.Value
 		}
 	}
 
