@@ -696,11 +696,34 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_UNKNOWN with response", func(t *testing.T) {
-		t.Error("test unimplemented")
-	})
-
-	t.Run("QUESTION_TYPE_UNKNOWN without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_UNKNOWN,
+			Responses: []ResponseDef{
+				{ID: "unk1", ResponseType: QUESTION_TYPE_UNKNOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DATE_INPUT},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+				}},
+				{ID: "unk2", ResponseType: QUESTION_TYPE_UNKNOWN},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "unk1", Items: []*studyAPI.ResponseItem{
+						{Key: "1", Value: "hello"},
+					}},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 3 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test-unk1.1"] != "hello" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 }
 

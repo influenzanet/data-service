@@ -88,17 +88,8 @@ func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemRe
 		return processResponseForInputs(question, response, questionOptionSep)
 	case QUESTION_TYPE_MATRIX:
 		return processResponseForMatrix(question, response, questionOptionSep)
-		// TODO
-		/*
-			QUESTION_TYPE_MATRIX              = "matrix"
-			QUESTION_TYPE_MATRIX_RADIO_ROW    = "matrix_radio_row"
-			QUESTION_TYPE_MATRIX_DROPDOWN     = "matrix_dropdown"
-			QUESTION_TYPE_MATRIX_INPUT        = "matrix_input"
-			QUESTION_TYPE_MATRIX_NUMBER_INPUT = "matrix_number_input"
-			QUESTION_TYPE_MATRIX_CHECKBOX     = "matrix_checkbox"
-			QUESTION_TYPE_UNKNOWN             = "unknown"
-			QUESTION_TYPE_EMPTY               = "empty"
-		*/
+	case QUESTION_TYPE_UNKNOWN:
+		return processResponseForUnknown(question, response, questionOptionSep)
 	default:
 		return map[string]string{}
 	}
@@ -333,6 +324,47 @@ func processResponseForMatrix(question SurveyQuestion, response *studyAPI.Survey
 					}
 					responseCols[slotKey] = value
 				}
+			}
+		}
+	}
+	return responseCols
+}
+
+func processResponseForUnknown(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	responseCols := map[string]string{}
+
+	for _, rSlot := range question.Responses {
+		// Prepare columns:
+		slotKey := question.ID + questionOptionSep + rSlot.ID
+
+		responseCols[slotKey] = ""
+		for _, option := range rSlot.Options {
+			if option.OptionType != OPTION_TYPE_RADIO &&
+				option.OptionType != OPTION_TYPE_DROPDOWN_OPTION {
+				responseCols[slotKey+"."+option.ID] = ""
+			}
+		}
+
+		rGroup := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+rSlot.ID)
+		if rGroup != nil {
+			if len(rGroup.Items) > 0 {
+				if len(rGroup.Items) > 1 {
+					log.Printf("unexpected response group for question %s: %v", question.ID, rGroup)
+				} else {
+					selection := rGroup.Items[0]
+					responseCols[slotKey] = selection.Key
+
+					valueKey := slotKey + "." + selection.Key
+					if _, hasKey := responseCols[valueKey]; hasKey {
+						responseCols[valueKey] = selection.Value
+					}
+				}
+			} else {
+				value := rGroup.Key
+				if rGroup.Value != "" {
+					value = rGroup.Value
+				}
+				responseCols[slotKey] = value
 			}
 		}
 	}
