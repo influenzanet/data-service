@@ -286,7 +286,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 	case "matrix":
 		responses := []ResponseDef{}
 		for _, row := range rItem.Items {
-			rowKey := row.Key
+			rowKey := key + "." + row.Key
 			if row.Role == "responseRow" {
 				for _, col := range row.Items {
 					cellKey := rowKey + "." + col.Key
@@ -312,7 +312,7 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 						if err != nil {
 							log.Printf("mapToResponseDef: label not found for: %v", col)
 						}
-						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_DROPDOWN
+						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_INPUT
 						currentResponseDef.Label = label
 					} else if col.Role == "check" {
 						currentResponseDef.ResponseType = QUESTION_TYPE_MATRIX_CHECKBOX
@@ -351,7 +351,6 @@ func mapToResponseDef(rItem *studyAPI.ItemComponent, parentKey string, lang stri
 				}
 				responses = append(responses, currentResponseDef)
 			}
-
 		}
 		return responses
 	default:

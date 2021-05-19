@@ -86,6 +86,8 @@ func getResponseColumns(question SurveyQuestion, response *studyAPI.SurveyItemRe
 		return processResponseForInputs(question, response, questionOptionSep)
 	case QUESTION_TYPE_EQ5D_SLIDER:
 		return processResponseForInputs(question, response, questionOptionSep)
+	case QUESTION_TYPE_MATRIX:
+		return processResponseForMatrix(question, response, questionOptionSep)
 		// TODO
 		/*
 			QUESTION_TYPE_MATRIX              = "matrix"
@@ -296,6 +298,44 @@ func handleInputList(questionKey string, responseSlotDefs []ResponseDef, respons
 		}
 	}
 
+	return responseCols
+}
+
+func processResponseForMatrix(question SurveyQuestion, response *studyAPI.SurveyItemResponse, questionOptionSep string) map[string]string {
+	responseCols := map[string]string{}
+
+	for _, rSlot := range question.Responses {
+		// Prepare columns:
+		slotKey := question.ID + questionOptionSep + rSlot.ID
+
+		if rSlot.ResponseType == QUESTION_TYPE_MATRIX_RADIO_ROW {
+			rGroup := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+rSlot.ID)
+			responseCols[slotKey] = ""
+			if rGroup != nil {
+				if len(rGroup.Items) != 1 {
+					log.Printf("unexpected response group for question %s: %v", question.ID, rGroup)
+				} else {
+					selection := rGroup.Items[0]
+					responseCols[slotKey] = selection.Key
+				}
+			}
+		} else {
+			rGroup := retrieveResponseItem(response, RESPONSE_ROOT_KEY+"."+rSlot.ID)
+			responseCols[slotKey] = ""
+			if rGroup != nil {
+				if len(rGroup.Items) != 1 {
+					log.Printf("unexpected response group for question %s: %v", question.ID, rGroup)
+				} else {
+					selection := rGroup.Items[0]
+					value := selection.Key
+					if selection.Value != "" {
+						value = selection.Value
+					}
+					responseCols[slotKey] = value
+				}
+			}
+		}
+	}
 	return responseCols
 }
 

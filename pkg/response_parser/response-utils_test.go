@@ -654,16 +654,45 @@ func TestGetResponseColumns(t *testing.T) {
 	})
 
 	t.Run("QUESTION_TYPE_MATRIX with response", func(t *testing.T) {
-		/*QUESTION_TYPE_MATRIX_RADIO_ROW = "matrix_radio_row"
-		QUESTION_TYPE_MATRIX_DROPDOWN = "matrix_dropdown"
-		QUESTION_TYPE_MATRIX_INPUT = "matrix_input"
-		QUESTION_TYPE_MATRIX_NUMBER_INPUT = "matrix_number_input"
-		QUESTION_TYPE_MATRIX_CHECKBOX = "matrix_checkbox"*/
-		t.Error("test unimplemented")
-	})
-
-	t.Run("QUESTION_TYPE_MATRIX without response", func(t *testing.T) {
-		t.Error("test unimplemented")
+		cols := getResponseColumns(SurveyQuestion{
+			ID:           "test",
+			QuestionType: QUESTION_TYPE_MATRIX,
+			Responses: []ResponseDef{
+				{ID: "mat.row1", ResponseType: QUESTION_TYPE_MATRIX_RADIO_ROW, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_RADIO},
+					{ID: "2", OptionType: OPTION_TYPE_RADIO},
+				}},
+				{ID: "mat.row2.col1", ResponseType: QUESTION_TYPE_MATRIX_CHECKBOX},
+				{ID: "mat.row2.col2", ResponseType: QUESTION_TYPE_MATRIX_DROPDOWN, Options: []ResponseOption{
+					{ID: "1", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+					{ID: "2", OptionType: OPTION_TYPE_DROPDOWN_OPTION},
+				}},
+			},
+		}, &studyAPI.SurveyItemResponse{
+			Key: "test",
+			Response: &studyAPI.ResponseItem{
+				Key: "rg",
+				Items: []*studyAPI.ResponseItem{
+					{Key: "mat", Items: []*studyAPI.ResponseItem{
+						{Key: "row1", Items: []*studyAPI.ResponseItem{
+							{Key: "1"},
+						}},
+						{Key: "row2", Items: []*studyAPI.ResponseItem{
+							{Key: "col2", Items: []*studyAPI.ResponseItem{
+								{Key: "1"},
+							}},
+						}},
+					}},
+				},
+			},
+		}, questionOptionSep)
+		if len(cols) != 3 {
+			t.Errorf("unexpected results: %v", cols)
+			return
+		}
+		if cols["test-mat.row2.col2"] != "1" {
+			t.Errorf("unexpected results: %v", cols)
+		}
 	})
 
 	t.Run("QUESTION_TYPE_UNKNOWN with response", func(t *testing.T) {
