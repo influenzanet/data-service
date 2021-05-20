@@ -2,6 +2,7 @@ package response_parser
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 	"strings"
@@ -33,7 +34,7 @@ func findVersionBasedOnTimestamp(submittedAt int64, versions []SurveyVersionPrev
 			}
 		}
 	}
-	return sv, errors.New("no survey version found")
+	return sv, fmt.Errorf("no survey version found: %d", submittedAt)
 }
 
 func findVersionBasedOnVersionID(versionID string, versions []SurveyVersionPreview) (sv SurveyVersionPreview, err error) {
@@ -195,20 +196,27 @@ func handleSimpleMultipleChoiceGroup(questionKey string, responseSlotDef Respons
 	if rGroup != nil {
 		if len(rGroup.Items) > 0 {
 			for _, option := range responseSlotDef.Options {
-				responseCols[questionKey+questionOptionSep+option.ID] = "FALSE"
+				responseCols[questionKey+questionOptionSep+option.ID] = FALSE_VALUE
+				if option.OptionType != OPTION_TYPE_CHECKBOX {
+					responseCols[questionKey+questionOptionSep+option.ID+questionOptionSep+OPEN_FIELD_COL_SUFFIX] = ""
+				}
 			}
 
 			for _, item := range rGroup.Items {
-				value := "TRUE"
-				if item.Value != "" {
-					value = item.Value
+				responseCols[questionKey+questionOptionSep+item.Key] = TRUE_VALUE
+
+				valueKey := questionKey + questionOptionSep + item.Key + questionOptionSep + OPEN_FIELD_COL_SUFFIX
+				if _, hasKey := responseCols[valueKey]; hasKey {
+					responseCols[valueKey] = item.Value
 				}
-				responseCols[questionKey+questionOptionSep+item.Key] = value
 			}
 		}
 	} else {
 		for _, option := range responseSlotDef.Options {
 			responseCols[questionKey+questionOptionSep+option.ID] = ""
+			if option.OptionType != OPTION_TYPE_CHECKBOX {
+				responseCols[questionKey+questionOptionSep+option.ID+questionOptionSep+OPEN_FIELD_COL_SUFFIX] = ""
+			}
 		}
 
 	}
@@ -226,20 +234,27 @@ func handleMultipleChoiceGroupList(questionKey string, responseSlotDefs []Respon
 		if rGroup != nil {
 			if len(rGroup.Items) > 0 {
 				for _, option := range rSlot.Options {
-					responseCols[slotKeyPrefix+option.ID] = "FALSE"
+					responseCols[slotKeyPrefix+option.ID] = FALSE_VALUE
+					if option.OptionType != OPTION_TYPE_CHECKBOX {
+						responseCols[slotKeyPrefix+option.ID+questionOptionSep+OPEN_FIELD_COL_SUFFIX] = ""
+					}
 				}
 
 				for _, item := range rGroup.Items {
-					value := "TRUE"
-					if item.Value != "" {
-						value = item.Value
+					responseCols[slotKeyPrefix+item.Key] = TRUE_VALUE
+
+					valueKey := slotKeyPrefix + item.Key + questionOptionSep + OPEN_FIELD_COL_SUFFIX
+					if _, hasKey := responseCols[valueKey]; hasKey {
+						responseCols[valueKey] = item.Value
 					}
-					responseCols[slotKeyPrefix+item.Key] = value
 				}
 			}
 		} else {
 			for _, option := range rSlot.Options {
 				responseCols[slotKeyPrefix+option.ID] = ""
+				if option.OptionType != OPTION_TYPE_CHECKBOX {
+					responseCols[slotKeyPrefix+option.ID+questionOptionSep+OPEN_FIELD_COL_SUFFIX] = ""
+				}
 			}
 
 		}
@@ -372,7 +387,7 @@ func processResponseForUnknown(question SurveyQuestion, response *studyAPI.Surve
 }
 
 func retrieveResponseItem(response *studyAPI.SurveyItemResponse, fullKey string) *studyAPI.ResponseItem {
-	if response == nil {
+	if response == nil || response.Response == nil {
 		return nil
 	}
 	keyParts := strings.Split(fullKey, ".")

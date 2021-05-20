@@ -1,18 +1,22 @@
 package response_parser
 
 import (
+	"encoding/csv"
 	"errors"
-	"log"
+	"fmt"
+	"io"
+	"sort"
 	"strconv"
 	"strings"
 
 	studyAPI "github.com/influenzanet/study-service/pkg/api"
 )
 
-type responseParser struct {
+type ResponseParser struct {
 	surveyKey            string
 	surveyVersions       []SurveyVersionPreview
 	responses            []ParsedResponse
+	contextColNames      []string
 	responseColNames     []string
 	metaColNames         []string
 	shortQuestionKeys    bool
@@ -24,12 +28,12 @@ func NewResponseParser(
 	previewLang string,
 	shortQuestionKeys bool,
 	questionOptionSep string,
-) (*responseParser, error) {
+) (*ResponseParser, error) {
 	if surveyDef == nil || surveyDef.Current == nil || surveyDef.Current.SurveyDefinition == nil {
 		return nil, errors.New("current survey definition not found")
 	}
 
-	rp := responseParser{
+	rp := ResponseParser{
 		surveyKey:            surveyDef.Current.SurveyDefinition.Key,
 		surveyVersions:       []SurveyVersionPreview{},
 		responses:            []ParsedResponse{},
@@ -47,40 +51,31 @@ func NewResponseParser(
 			if shortQuestionKeys {
 				rp.surveyVersions[versionInd].Questions[qInd].ID = strings.TrimPrefix(question.ID, rp.surveyKey+".")
 			}
-
-			//if shortResponseKeys {
-			/*for rInd, resp := range question.Responses {
-				rIDparts := strings.Split(resp.ID, ".")
-				rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].ID = rIDparts[len(rIDparts)-1]
-
-				for oInd, option := range resp.Options {
-					oIDparts := strings.Split(option.ID, ".")
-					rp.surveyVersions[versionInd].Questions[qInd].Responses[rInd].Options[oInd].ID = oIDparts[len(oIDparts)-1]
-				}
-			}*/
-
 		}
 
 	}
-	log.Println(rp.surveyVersions)
-	return &rp, errors.New("test")
+	return &rp, nil
 }
 
-func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
+func (rp *ResponseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 	parsedResponse := ParsedResponse{
 		ParticipantID: rawResp.ParticipantId,
 		Version:       rawResp.VersionId,
 		SubmittedAt:   rawResp.SubmittedAt,
 		Context:       rawResp.Context,
+		Responses:     map[string]string{},
+		Meta: ResponseMeta{
+			Initialised: map[string]string{},
+			Displayed:   map[string]string{},
+			Responded:   map[string]string{},
+			ItemVersion: map[string]string{},
+		},
 	}
 
 	currentVersion, err := findSurveyVersion(rawResp.VersionId, rawResp.SubmittedAt, rp.surveyVersions)
 	if err != nil {
 		return err
 	}
-
-	// TODO: interpret response  from DB
-	log.Println(currentVersion)
 
 	if rp.shortQuestionKeys {
 		for i, r := range rawResp.Responses {
@@ -89,11 +84,8 @@ func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 	}
 
 	for _, question := range currentVersion.Questions {
-		log.Println(question)
-
 		resp := findResponse(rawResp.Responses, question.ID)
 
-		// TODO: parse question
 		responseColumns := getResponseColumns(question, resp, rp.questionOptionKeySep)
 		for k, v := range responseColumns {
 			parsedResponse.Responses[k] = v
@@ -118,12 +110,15 @@ func (rp *responseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 	for k := range parsedResponse.Responses {
 		rp.AddResponseColName(k)
 	}
+	for k := range parsedResponse.Context {
+		rp.AddContextColName(k)
+	}
 
 	rp.responses = append(rp.responses, parsedResponse)
-	return errors.New("unimplemented")
+	return nil
 }
 
-func (rp *responseParser) AddResponseColName(name string) {
+func (rp *ResponseParser) AddResponseColName(name string) {
 	for _, n := range rp.responseColNames {
 		if n == name {
 			return
@@ -132,7 +127,16 @@ func (rp *responseParser) AddResponseColName(name string) {
 	rp.responseColNames = append(rp.responseColNames, name)
 }
 
-func (rp *responseParser) AddMetaColName(name string) {
+func (rp *ResponseParser) AddContextColName(name string) {
+	for _, n := range rp.contextColNames {
+		if n == name {
+			return
+		}
+	}
+	rp.contextColNames = append(rp.contextColNames, name)
+}
+
+func (rp *ResponseParser) AddMetaColName(name string) {
 	for _, n := range rp.metaColNames {
 		if n == name {
 			return
@@ -141,17 +145,81 @@ func (rp *responseParser) AddMetaColName(name string) {
 	rp.metaColNames = append(rp.metaColNames, name)
 }
 
-func (rp responseParser) GetSurveyVersionDefs() []SurveyVersionPreview {
+func (rp ResponseParser) GetSurveyVersionDefs() []SurveyVersionPreview {
 	return rp.surveyVersions
 }
 
-func (rp responseParser) GetResponsesCSV() []ParsedResponse {
+func (rp ResponseParser) GetResponses() []ParsedResponse {
 	// TODO: merge context and responses keys
 	return rp.responses
 }
 
-func (rp responseParser) GetMeta() error {
-	return errors.New("unimplemented")
+func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
+	if len(rp.responses) < 1 {
+		return errors.New("no responses, nothing is generated")
+	}
+
+	// Sort column names
+	contextCols := rp.contextColNames
+	sort.Strings(contextCols)
+	responseCols := rp.responseColNames
+	sort.Strings(responseCols)
+
+	// Prepare csv header
+	header := []string{
+		"participantID",
+		"version",
+		"submitted",
+	}
+	header = append(header, contextCols...)
+	header = append(header, responseCols...)
+
+	// Init writer
+	w := csv.NewWriter(writer)
+
+	// Write header
+	err := w.Write(header)
+	if err != nil {
+		return err
+	}
+
+	// Write responses
+	for _, resp := range rp.responses {
+		line := []string{
+			resp.ParticipantID,
+			resp.Version,
+			fmt.Sprint(resp.SubmittedAt),
+		}
+
+		for _, colName := range contextCols {
+			v, ok := resp.Context[colName]
+			if !ok {
+				line = append(line, "")
+				continue
+			}
+			line = append(line, v)
+		}
+
+		for _, colName := range responseCols {
+			v, ok := resp.Responses[colName]
+			if !ok {
+				line = append(line, "")
+				continue
+			}
+			line = append(line, v)
+		}
+
+		err := w.Write(line)
+		if err != nil {
+			return err
+		}
+	}
+	w.Flush()
+	return nil
+}
+
+func (rp ResponseParser) GetMetaCSV() string {
+	return ""
 }
 
 /*

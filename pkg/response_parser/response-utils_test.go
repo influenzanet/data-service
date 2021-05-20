@@ -195,7 +195,7 @@ func TestGetResponseColumns(t *testing.T) {
 				},
 			},
 		}, questionOptionSep)
-		if len(cols) != 4 {
+		if len(cols) != 6 {
 			t.Errorf("unexpected results: %v", cols)
 		}
 		if cols["test-1"] != "TRUE" {
@@ -208,7 +208,7 @@ func TestGetResponseColumns(t *testing.T) {
 			ID:           "test",
 			QuestionType: QUESTION_TYPE_MULTIPLE_CHOICE,
 			Responses: []ResponseDef{
-				{ID: "scg1", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
+				{ID: "mcg1", ResponseType: QUESTION_TYPE_MULTIPLE_CHOICE, Options: []ResponseOption{
 					{ID: "1", OptionType: OPTION_TYPE_CHECKBOX},
 					{ID: "2", OptionType: OPTION_TYPE_CHECKBOX},
 					{ID: "3", OptionType: OPTION_TYPE_TEXT_INPUT},
@@ -216,7 +216,7 @@ func TestGetResponseColumns(t *testing.T) {
 				}},
 			},
 		}, nil, questionOptionSep)
-		if len(cols) != 4 {
+		if len(cols) != 6 {
 			t.Errorf("unexpected results: %v", cols)
 		}
 	})
@@ -252,7 +252,7 @@ func TestGetResponseColumns(t *testing.T) {
 				},
 			},
 		}, questionOptionSep)
-		if len(cols) != 8 {
+		if len(cols) != 12 {
 			t.Errorf("unexpected results: %v", cols)
 		}
 	})

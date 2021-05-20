@@ -33,6 +33,12 @@ const (
 	RESPONSE_ROOT_KEY = "rg"
 )
 
+const (
+	OPEN_FIELD_COL_SUFFIX = "open"
+	TRUE_VALUE            = "TRUE"
+	FALSE_VALUE           = "FALSE"
+)
+
 type SurveyVersionPreview struct {
 	VersionID   string
 	Published   int64
