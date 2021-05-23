@@ -17,6 +17,7 @@ import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
+	sync "sync"
 )
 
 const (
@@ -30,6 +31,542 @@ const (
 // of the legacy proto package is being used.
 const _ = proto.ProtoPackageIsVersion4
 
+type ResponseQuery struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Token       *api_types.TokenInfos `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	StudyKey    string                `protobuf:"bytes,2,opt,name=study_key,json=studyKey,proto3" json:"study_key,omitempty"`
+	SurveyKey   string                `protobuf:"bytes,3,opt,name=survey_key,json=surveyKey,proto3" json:"survey_key,omitempty"`
+	From        int64                 `protobuf:"varint,4,opt,name=from,proto3" json:"from,omitempty"`
+	Until       int64                 `protobuf:"varint,5,opt,name=until,proto3" json:"until,omitempty"`
+	IncludeMeta bool                  `protobuf:"varint,6,opt,name=include_meta,json=includeMeta,proto3" json:"include_meta,omitempty"`
+}
+
+func (x *ResponseQuery) Reset() {
+	*x = ResponseQuery{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[0]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponseQuery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseQuery) ProtoMessage() {}
+
+func (x *ResponseQuery) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[0]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseQuery.ProtoReflect.Descriptor instead.
+func (*ResponseQuery) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *ResponseQuery) GetToken() *api_types.TokenInfos {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
+func (x *ResponseQuery) GetStudyKey() string {
+	if x != nil {
+		return x.StudyKey
+	}
+	return ""
+}
+
+func (x *ResponseQuery) GetSurveyKey() string {
+	if x != nil {
+		return x.SurveyKey
+	}
+	return ""
+}
+
+func (x *ResponseQuery) GetFrom() int64 {
+	if x != nil {
+		return x.From
+	}
+	return 0
+}
+
+func (x *ResponseQuery) GetUntil() int64 {
+	if x != nil {
+		return x.Until
+	}
+	return 0
+}
+
+func (x *ResponseQuery) GetIncludeMeta() bool {
+	if x != nil {
+		return x.IncludeMeta
+	}
+	return false
+}
+
+type SurveyInfoQuery struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Token           *api_types.TokenInfos `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
+	StudyKey        string                `protobuf:"bytes,2,opt,name=study_key,json=studyKey,proto3" json:"study_key,omitempty"`
+	SurveyKey       string                `protobuf:"bytes,3,opt,name=survey_key,json=surveyKey,proto3" json:"survey_key,omitempty"`
+	PreviewLanguage string                `protobuf:"bytes,4,opt,name=preview_language,json=previewLanguage,proto3" json:"preview_language,omitempty"`
+}
+
+func (x *SurveyInfoQuery) Reset() {
+	*x = SurveyInfoQuery{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SurveyInfoQuery) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SurveyInfoQuery) ProtoMessage() {}
+
+func (x *SurveyInfoQuery) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SurveyInfoQuery.ProtoReflect.Descriptor instead.
+func (*SurveyInfoQuery) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *SurveyInfoQuery) GetToken() *api_types.TokenInfos {
+	if x != nil {
+		return x.Token
+	}
+	return nil
+}
+
+func (x *SurveyInfoQuery) GetStudyKey() string {
+	if x != nil {
+		return x.StudyKey
+	}
+	return ""
+}
+
+func (x *SurveyInfoQuery) GetSurveyKey() string {
+	if x != nil {
+		return x.SurveyKey
+	}
+	return ""
+}
+
+func (x *SurveyInfoQuery) GetPreviewLanguage() string {
+	if x != nil {
+		return x.PreviewLanguage
+	}
+	return ""
+}
+
+type Chunk struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Chunk []byte `protobuf:"bytes,1,opt,name=chunk,proto3" json:"chunk,omitempty"`
+}
+
+func (x *Chunk) Reset() {
+	*x = Chunk{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Chunk) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Chunk) ProtoMessage() {}
+
+func (x *Chunk) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Chunk.ProtoReflect.Descriptor instead.
+func (*Chunk) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *Chunk) GetChunk() []byte {
+	if x != nil {
+		return x.Chunk
+	}
+	return nil
+}
+
+type SurveyInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key      string                  `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Versions []*SurveyVersionPreview `protobuf:"bytes,2,rep,name=versions,proto3" json:"versions,omitempty"`
+}
+
+func (x *SurveyInfo) Reset() {
+	*x = SurveyInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SurveyInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SurveyInfo) ProtoMessage() {}
+
+func (x *SurveyInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SurveyInfo.ProtoReflect.Descriptor instead.
+func (*SurveyInfo) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *SurveyInfo) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SurveyInfo) GetVersions() []*SurveyVersionPreview {
+	if x != nil {
+		return x.Versions
+	}
+	return nil
+}
+
+type SurveyVersionPreview struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	VersionId   string            `protobuf:"bytes,1,opt,name=version_id,json=versionId,proto3" json:"version_id,omitempty"`
+	Published   int64             `protobuf:"varint,2,opt,name=published,proto3" json:"published,omitempty"`
+	Unpublished int64             `protobuf:"varint,3,opt,name=unpublished,proto3" json:"unpublished,omitempty"`
+	Questions   []*SurveyQuestion `protobuf:"bytes,4,rep,name=questions,proto3" json:"questions,omitempty"`
+}
+
+func (x *SurveyVersionPreview) Reset() {
+	*x = SurveyVersionPreview{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SurveyVersionPreview) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SurveyVersionPreview) ProtoMessage() {}
+
+func (x *SurveyVersionPreview) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SurveyVersionPreview.ProtoReflect.Descriptor instead.
+func (*SurveyVersionPreview) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *SurveyVersionPreview) GetVersionId() string {
+	if x != nil {
+		return x.VersionId
+	}
+	return ""
+}
+
+func (x *SurveyVersionPreview) GetPublished() int64 {
+	if x != nil {
+		return x.Published
+	}
+	return 0
+}
+
+func (x *SurveyVersionPreview) GetUnpublished() int64 {
+	if x != nil {
+		return x.Unpublished
+	}
+	return 0
+}
+
+func (x *SurveyVersionPreview) GetQuestions() []*SurveyQuestion {
+	if x != nil {
+		return x.Questions
+	}
+	return nil
+}
+
+type SurveyQuestion struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key           string         `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	Title         string         `protobuf:"bytes,2,opt,name=title,proto3" json:"title,omitempty"`
+	QuestionTypes string         `protobuf:"bytes,3,opt,name=question_types,json=questionTypes,proto3" json:"question_types,omitempty"`
+	Responses     []*ResponseDef `protobuf:"bytes,4,rep,name=responses,proto3" json:"responses,omitempty"`
+}
+
+func (x *SurveyQuestion) Reset() {
+	*x = SurveyQuestion{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *SurveyQuestion) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SurveyQuestion) ProtoMessage() {}
+
+func (x *SurveyQuestion) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SurveyQuestion.ProtoReflect.Descriptor instead.
+func (*SurveyQuestion) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *SurveyQuestion) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *SurveyQuestion) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *SurveyQuestion) GetQuestionTypes() string {
+	if x != nil {
+		return x.QuestionTypes
+	}
+	return ""
+}
+
+func (x *SurveyQuestion) GetResponses() []*ResponseDef {
+	if x != nil {
+		return x.Responses
+	}
+	return nil
+}
+
+type ResponseDef struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key           string            `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	ResponseTypes string            `protobuf:"bytes,2,opt,name=response_types,json=responseTypes,proto3" json:"response_types,omitempty"`
+	Label         string            `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+	Options       []*ResponseOption `protobuf:"bytes,4,rep,name=options,proto3" json:"options,omitempty"`
+}
+
+func (x *ResponseDef) Reset() {
+	*x = ResponseDef{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponseDef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseDef) ProtoMessage() {}
+
+func (x *ResponseDef) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseDef.ProtoReflect.Descriptor instead.
+func (*ResponseDef) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ResponseDef) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ResponseDef) GetResponseTypes() string {
+	if x != nil {
+		return x.ResponseTypes
+	}
+	return ""
+}
+
+func (x *ResponseDef) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
+func (x *ResponseDef) GetOptions() []*ResponseOption {
+	if x != nil {
+		return x.Options
+	}
+	return nil
+}
+
+type ResponseOption struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Key        string `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
+	OptionType string `protobuf:"bytes,2,opt,name=option_type,json=optionType,proto3" json:"option_type,omitempty"`
+	Label      string `protobuf:"bytes,3,opt,name=label,proto3" json:"label,omitempty"`
+}
+
+func (x *ResponseOption) Reset() {
+	*x = ResponseOption{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_data_service_data_service_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ResponseOption) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResponseOption) ProtoMessage() {}
+
+func (x *ResponseOption) ProtoReflect() protoreflect.Message {
+	mi := &file_data_service_data_service_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResponseOption.ProtoReflect.Descriptor instead.
+func (*ResponseOption) Descriptor() ([]byte, []int) {
+	return file_data_service_data_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *ResponseOption) GetKey() string {
+	if x != nil {
+		return x.Key
+	}
+	return ""
+}
+
+func (x *ResponseOption) GetOptionType() string {
+	if x != nil {
+		return x.OptionType
+	}
+	return ""
+}
+
+func (x *ResponseOption) GetLabel() string {
+	if x != nil {
+		return x.Label
+	}
+	return ""
+}
+
 var File_data_service_data_service_proto protoreflect.FileDescriptor
 
 var file_data_service_data_service_proto_rawDesc = []byte{
@@ -38,31 +575,157 @@ var file_data_service_data_service_proto_rawDesc = []byte{
 	0x6f, 0x12, 0x19, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e,
 	0x64, 0x61, 0x74, 0x61, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x1a, 0x13, 0x73, 0x68,
 	0x61, 0x72, 0x65, 0x64, 0x2f, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x1a, 0x1b, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62,
-	0x75, 0x66, 0x2f, 0x65, 0x6d, 0x70, 0x74, 0x79, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x32, 0x56,
-	0x0a, 0x0e, 0x44, 0x61, 0x74, 0x61, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x41, 0x70, 0x69,
-	0x12, 0x44, 0x0a, 0x06, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f, 0x6f,
-	0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x1a, 0x22, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65,
-	0x74, 0x2e, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
-	0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x42, 0x2e, 0x5a, 0x2c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
-	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65,
-	0x74, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x70,
-	0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x1a, 0x16, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x2f, 0x61, 0x75, 0x74, 0x68, 0x5f, 0x69,
+	0x6e, 0x66, 0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x1b, 0x67, 0x6f, 0x6f, 0x67, 0x6c,
+	0x65, 0x2f, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2f, 0x65, 0x6d, 0x70, 0x74, 0x79,
+	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0xcf, 0x01, 0x0a, 0x0d, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x35, 0x0a, 0x05, 0x74, 0x6f, 0x6b, 0x65,
+	0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65,
+	0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x2e, 0x54, 0x6f,
+	0x6b, 0x65, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x52, 0x05, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12,
+	0x1b, 0x0a, 0x09, 0x73, 0x74, 0x75, 0x64, 0x79, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x08, 0x73, 0x74, 0x75, 0x64, 0x79, 0x4b, 0x65, 0x79, 0x12, 0x1d, 0x0a, 0x0a,
+	0x73, 0x75, 0x72, 0x76, 0x65, 0x79, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x09, 0x73, 0x75, 0x72, 0x76, 0x65, 0x79, 0x4b, 0x65, 0x79, 0x12, 0x12, 0x0a, 0x04, 0x66,
+	0x72, 0x6f, 0x6d, 0x18, 0x04, 0x20, 0x01, 0x28, 0x03, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12,
+	0x14, 0x0a, 0x05, 0x75, 0x6e, 0x74, 0x69, 0x6c, 0x18, 0x05, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05,
+	0x75, 0x6e, 0x74, 0x69, 0x6c, 0x12, 0x21, 0x0a, 0x0c, 0x69, 0x6e, 0x63, 0x6c, 0x75, 0x64, 0x65,
+	0x5f, 0x6d, 0x65, 0x74, 0x61, 0x18, 0x06, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x69, 0x6e, 0x63,
+	0x6c, 0x75, 0x64, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x22, 0xaf, 0x01, 0x0a, 0x0f, 0x53, 0x75, 0x72,
+	0x76, 0x65, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x51, 0x75, 0x65, 0x72, 0x79, 0x12, 0x35, 0x0a, 0x05,
+	0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x69, 0x6e,
+	0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x73, 0x68, 0x61, 0x72, 0x65,
+	0x64, 0x2e, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x49, 0x6e, 0x66, 0x6f, 0x73, 0x52, 0x05, 0x74, 0x6f,
+	0x6b, 0x65, 0x6e, 0x12, 0x1b, 0x0a, 0x09, 0x73, 0x74, 0x75, 0x64, 0x79, 0x5f, 0x6b, 0x65, 0x79,
+	0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x74, 0x75, 0x64, 0x79, 0x4b, 0x65, 0x79,
+	0x12, 0x1d, 0x0a, 0x0a, 0x73, 0x75, 0x72, 0x76, 0x65, 0x79, 0x5f, 0x6b, 0x65, 0x79, 0x18, 0x03,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x73, 0x75, 0x72, 0x76, 0x65, 0x79, 0x4b, 0x65, 0x79, 0x12,
+	0x29, 0x0a, 0x10, 0x70, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x5f, 0x6c, 0x61, 0x6e, 0x67, 0x75,
+	0x61, 0x67, 0x65, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0f, 0x70, 0x72, 0x65, 0x76, 0x69,
+	0x65, 0x77, 0x4c, 0x61, 0x6e, 0x67, 0x75, 0x61, 0x67, 0x65, 0x22, 0x1d, 0x0a, 0x05, 0x43, 0x68,
+	0x75, 0x6e, 0x6b, 0x12, 0x14, 0x0a, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x0c, 0x52, 0x05, 0x63, 0x68, 0x75, 0x6e, 0x6b, 0x22, 0x6b, 0x0a, 0x0a, 0x53, 0x75, 0x72,
+	0x76, 0x65, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x4b, 0x0a, 0x08, 0x76, 0x65, 0x72,
+	0x73, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x2f, 0x2e, 0x69, 0x6e,
+	0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f,
+	0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x75, 0x72, 0x76, 0x65, 0x79, 0x56, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x50, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x52, 0x08, 0x76, 0x65,
+	0x72, 0x73, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xbe, 0x01, 0x0a, 0x14, 0x53, 0x75, 0x72, 0x76, 0x65,
+	0x79, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x50, 0x72, 0x65, 0x76, 0x69, 0x65, 0x77, 0x12,
+	0x1d, 0x0a, 0x0a, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x09, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x49, 0x64, 0x12, 0x1c,
+	0x0a, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x09, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x64, 0x12, 0x20, 0x0a, 0x0b,
+	0x75, 0x6e, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28,
+	0x03, 0x52, 0x0b, 0x75, 0x6e, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x73, 0x68, 0x65, 0x64, 0x12, 0x47,
+	0x0a, 0x09, 0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28,
+	0x0b, 0x32, 0x29, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74,
+	0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x75,
+	0x72, 0x76, 0x65, 0x79, 0x51, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x09, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x22, 0xa5, 0x01, 0x0a, 0x0e, 0x53, 0x75, 0x72, 0x76,
+	0x65, 0x79, 0x51, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65,
+	0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05,
+	0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74,
+	0x6c, 0x65, 0x12, 0x25, 0x0a, 0x0e, 0x71, 0x75, 0x65, 0x73, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74,
+	0x79, 0x70, 0x65, 0x73, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x73, 0x12, 0x44, 0x0a, 0x09, 0x72, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x69,
+	0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x44, 0x65, 0x66, 0x52, 0x09, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73, 0x22,
+	0xa1, 0x01, 0x0a, 0x0b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x44, 0x65, 0x66, 0x12,
+	0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b, 0x65,
+	0x79, 0x12, 0x25, 0x0a, 0x0e, 0x72, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x5f, 0x74, 0x79,
+	0x70, 0x65, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x72, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x54, 0x79, 0x70, 0x65, 0x73, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65,
+	0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x12, 0x43,
+	0x0a, 0x07, 0x6f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32,
+	0x29, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64,
+	0x61, 0x74, 0x61, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x4f, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x07, 0x6f, 0x70, 0x74, 0x69,
+	0x6f, 0x6e, 0x73, 0x22, 0x59, 0x0a, 0x0e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x4f,
+	0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x1f, 0x0a, 0x0b, 0x6f, 0x70, 0x74, 0x69, 0x6f,
+	0x6e, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0a, 0x6f, 0x70,
+	0x74, 0x69, 0x6f, 0x6e, 0x54, 0x79, 0x70, 0x65, 0x12, 0x14, 0x0a, 0x05, 0x6c, 0x61, 0x62, 0x65,
+	0x6c, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x6c, 0x61, 0x62, 0x65, 0x6c, 0x32, 0xff,
+	0x02, 0x0a, 0x0e, 0x44, 0x61, 0x74, 0x61, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x41, 0x70,
+	0x69, 0x12, 0x44, 0x0a, 0x06, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x16, 0x2e, 0x67, 0x6f,
+	0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x22, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e,
+	0x65, 0x74, 0x2e, 0x73, 0x68, 0x61, 0x72, 0x65, 0x64, 0x2e, 0x53, 0x65, 0x72, 0x76, 0x69, 0x63,
+	0x65, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x5f, 0x0a, 0x0f, 0x47, 0x65, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x73, 0x43, 0x53, 0x56, 0x12, 0x28, 0x2e, 0x69, 0x6e, 0x66,
+	0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x73,
+	0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x51,
+	0x75, 0x65, 0x72, 0x79, 0x1a, 0x20, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61,
+	0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65,
+	0x2e, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x30, 0x01, 0x12, 0x62, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x53,
+	0x75, 0x72, 0x76, 0x65, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x43, 0x53, 0x56, 0x12, 0x2a, 0x2e, 0x69,
+	0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61,
+	0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x75, 0x72, 0x76, 0x65, 0x79, 0x49,
+	0x6e, 0x66, 0x6f, 0x51, 0x75, 0x65, 0x72, 0x79, 0x1a, 0x20, 0x2e, 0x69, 0x6e, 0x66, 0x6c, 0x75,
+	0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x73, 0x65, 0x72,
+	0x76, 0x69, 0x63, 0x65, 0x2e, 0x43, 0x68, 0x75, 0x6e, 0x6b, 0x30, 0x01, 0x12, 0x62, 0x0a, 0x0d,
+	0x47, 0x65, 0x74, 0x53, 0x75, 0x72, 0x76, 0x65, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x2a, 0x2e,
+	0x69, 0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74,
+	0x61, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x75, 0x72, 0x76, 0x65, 0x79,
+	0x49, 0x6e, 0x66, 0x6f, 0x51, 0x75, 0x65, 0x72, 0x79, 0x1a, 0x25, 0x2e, 0x69, 0x6e, 0x66, 0x6c,
+	0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2e, 0x64, 0x61, 0x74, 0x61, 0x5f, 0x73, 0x65,
+	0x72, 0x76, 0x69, 0x63, 0x65, 0x2e, 0x53, 0x75, 0x72, 0x76, 0x65, 0x79, 0x49, 0x6e, 0x66, 0x6f,
+	0x42, 0x2e, 0x5a, 0x2c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x69,
+	0x6e, 0x66, 0x6c, 0x75, 0x65, 0x6e, 0x7a, 0x61, 0x6e, 0x65, 0x74, 0x2f, 0x64, 0x61, 0x74, 0x61,
+	0x2d, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x2f, 0x70, 0x6b, 0x67, 0x2f, 0x61, 0x70, 0x69,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
+var (
+	file_data_service_data_service_proto_rawDescOnce sync.Once
+	file_data_service_data_service_proto_rawDescData = file_data_service_data_service_proto_rawDesc
+)
+
+func file_data_service_data_service_proto_rawDescGZIP() []byte {
+	file_data_service_data_service_proto_rawDescOnce.Do(func() {
+		file_data_service_data_service_proto_rawDescData = protoimpl.X.CompressGZIP(file_data_service_data_service_proto_rawDescData)
+	})
+	return file_data_service_data_service_proto_rawDescData
+}
+
+var file_data_service_data_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_data_service_data_service_proto_goTypes = []interface{}{
-	(*empty.Empty)(nil),             // 0: google.protobuf.Empty
-	(*api_types.ServiceStatus)(nil), // 1: influenzanet.shared.ServiceStatus
+	(*ResponseQuery)(nil),           // 0: influenzanet.data_service.ResponseQuery
+	(*SurveyInfoQuery)(nil),         // 1: influenzanet.data_service.SurveyInfoQuery
+	(*Chunk)(nil),                   // 2: influenzanet.data_service.Chunk
+	(*SurveyInfo)(nil),              // 3: influenzanet.data_service.SurveyInfo
+	(*SurveyVersionPreview)(nil),    // 4: influenzanet.data_service.SurveyVersionPreview
+	(*SurveyQuestion)(nil),          // 5: influenzanet.data_service.SurveyQuestion
+	(*ResponseDef)(nil),             // 6: influenzanet.data_service.ResponseDef
+	(*ResponseOption)(nil),          // 7: influenzanet.data_service.ResponseOption
+	(*api_types.TokenInfos)(nil),    // 8: influenzanet.shared.TokenInfos
+	(*empty.Empty)(nil),             // 9: google.protobuf.Empty
+	(*api_types.ServiceStatus)(nil), // 10: influenzanet.shared.ServiceStatus
 }
 var file_data_service_data_service_proto_depIdxs = []int32{
-	0, // 0: influenzanet.data_service.DataServiceApi.Status:input_type -> google.protobuf.Empty
-	1, // 1: influenzanet.data_service.DataServiceApi.Status:output_type -> influenzanet.shared.ServiceStatus
-	1, // [1:2] is the sub-list for method output_type
-	0, // [0:1] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	8,  // 0: influenzanet.data_service.ResponseQuery.token:type_name -> influenzanet.shared.TokenInfos
+	8,  // 1: influenzanet.data_service.SurveyInfoQuery.token:type_name -> influenzanet.shared.TokenInfos
+	4,  // 2: influenzanet.data_service.SurveyInfo.versions:type_name -> influenzanet.data_service.SurveyVersionPreview
+	5,  // 3: influenzanet.data_service.SurveyVersionPreview.questions:type_name -> influenzanet.data_service.SurveyQuestion
+	6,  // 4: influenzanet.data_service.SurveyQuestion.responses:type_name -> influenzanet.data_service.ResponseDef
+	7,  // 5: influenzanet.data_service.ResponseDef.options:type_name -> influenzanet.data_service.ResponseOption
+	9,  // 6: influenzanet.data_service.DataServiceApi.Status:input_type -> google.protobuf.Empty
+	0,  // 7: influenzanet.data_service.DataServiceApi.GetResponsesCSV:input_type -> influenzanet.data_service.ResponseQuery
+	1,  // 8: influenzanet.data_service.DataServiceApi.GetSurveyInfoCSV:input_type -> influenzanet.data_service.SurveyInfoQuery
+	1,  // 9: influenzanet.data_service.DataServiceApi.GetSurveyInfo:input_type -> influenzanet.data_service.SurveyInfoQuery
+	10, // 10: influenzanet.data_service.DataServiceApi.Status:output_type -> influenzanet.shared.ServiceStatus
+	2,  // 11: influenzanet.data_service.DataServiceApi.GetResponsesCSV:output_type -> influenzanet.data_service.Chunk
+	2,  // 12: influenzanet.data_service.DataServiceApi.GetSurveyInfoCSV:output_type -> influenzanet.data_service.Chunk
+	3,  // 13: influenzanet.data_service.DataServiceApi.GetSurveyInfo:output_type -> influenzanet.data_service.SurveyInfo
+	10, // [10:14] is the sub-list for method output_type
+	6,  // [6:10] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_data_service_data_service_proto_init() }
@@ -70,18 +733,117 @@ func file_data_service_data_service_proto_init() {
 	if File_data_service_data_service_proto != nil {
 		return
 	}
+	if !protoimpl.UnsafeEnabled {
+		file_data_service_data_service_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponseQuery); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SurveyInfoQuery); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Chunk); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SurveyInfo); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SurveyVersionPreview); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*SurveyQuestion); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponseDef); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_data_service_data_service_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ResponseOption); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_data_service_data_service_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   0,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
 		GoTypes:           file_data_service_data_service_proto_goTypes,
 		DependencyIndexes: file_data_service_data_service_proto_depIdxs,
+		MessageInfos:      file_data_service_data_service_proto_msgTypes,
 	}.Build()
 	File_data_service_data_service_proto = out.File
 	file_data_service_data_service_proto_rawDesc = nil
@@ -102,6 +864,9 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type DataServiceApiClient interface {
 	Status(ctx context.Context, in *empty.Empty, opts ...grpc.CallOption) (*api_types.ServiceStatus, error)
+	GetResponsesCSV(ctx context.Context, in *ResponseQuery, opts ...grpc.CallOption) (DataServiceApi_GetResponsesCSVClient, error)
+	GetSurveyInfoCSV(ctx context.Context, in *SurveyInfoQuery, opts ...grpc.CallOption) (DataServiceApi_GetSurveyInfoCSVClient, error)
+	GetSurveyInfo(ctx context.Context, in *SurveyInfoQuery, opts ...grpc.CallOption) (*SurveyInfo, error)
 }
 
 type dataServiceApiClient struct {
@@ -121,9 +886,85 @@ func (c *dataServiceApiClient) Status(ctx context.Context, in *empty.Empty, opts
 	return out, nil
 }
 
+func (c *dataServiceApiClient) GetResponsesCSV(ctx context.Context, in *ResponseQuery, opts ...grpc.CallOption) (DataServiceApi_GetResponsesCSVClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_DataServiceApi_serviceDesc.Streams[0], "/influenzanet.data_service.DataServiceApi/GetResponsesCSV", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServiceApiGetResponsesCSVClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataServiceApi_GetResponsesCSVClient interface {
+	Recv() (*Chunk, error)
+	grpc.ClientStream
+}
+
+type dataServiceApiGetResponsesCSVClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServiceApiGetResponsesCSVClient) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *dataServiceApiClient) GetSurveyInfoCSV(ctx context.Context, in *SurveyInfoQuery, opts ...grpc.CallOption) (DataServiceApi_GetSurveyInfoCSVClient, error) {
+	stream, err := c.cc.NewStream(ctx, &_DataServiceApi_serviceDesc.Streams[1], "/influenzanet.data_service.DataServiceApi/GetSurveyInfoCSV", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataServiceApiGetSurveyInfoCSVClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type DataServiceApi_GetSurveyInfoCSVClient interface {
+	Recv() (*Chunk, error)
+	grpc.ClientStream
+}
+
+type dataServiceApiGetSurveyInfoCSVClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataServiceApiGetSurveyInfoCSVClient) Recv() (*Chunk, error) {
+	m := new(Chunk)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
+func (c *dataServiceApiClient) GetSurveyInfo(ctx context.Context, in *SurveyInfoQuery, opts ...grpc.CallOption) (*SurveyInfo, error) {
+	out := new(SurveyInfo)
+	err := c.cc.Invoke(ctx, "/influenzanet.data_service.DataServiceApi/GetSurveyInfo", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DataServiceApiServer is the server API for DataServiceApi service.
 type DataServiceApiServer interface {
 	Status(context.Context, *empty.Empty) (*api_types.ServiceStatus, error)
+	GetResponsesCSV(*ResponseQuery, DataServiceApi_GetResponsesCSVServer) error
+	GetSurveyInfoCSV(*SurveyInfoQuery, DataServiceApi_GetSurveyInfoCSVServer) error
+	GetSurveyInfo(context.Context, *SurveyInfoQuery) (*SurveyInfo, error)
 }
 
 // UnimplementedDataServiceApiServer can be embedded to have forward compatible implementations.
@@ -132,6 +973,15 @@ type UnimplementedDataServiceApiServer struct {
 
 func (*UnimplementedDataServiceApiServer) Status(context.Context, *empty.Empty) (*api_types.ServiceStatus, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Status not implemented")
+}
+func (*UnimplementedDataServiceApiServer) GetResponsesCSV(*ResponseQuery, DataServiceApi_GetResponsesCSVServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetResponsesCSV not implemented")
+}
+func (*UnimplementedDataServiceApiServer) GetSurveyInfoCSV(*SurveyInfoQuery, DataServiceApi_GetSurveyInfoCSVServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetSurveyInfoCSV not implemented")
+}
+func (*UnimplementedDataServiceApiServer) GetSurveyInfo(context.Context, *SurveyInfoQuery) (*SurveyInfo, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetSurveyInfo not implemented")
 }
 
 func RegisterDataServiceApiServer(s *grpc.Server, srv DataServiceApiServer) {
@@ -156,6 +1006,66 @@ func _DataServiceApi_Status_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DataServiceApi_GetResponsesCSV_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(ResponseQuery)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServiceApiServer).GetResponsesCSV(m, &dataServiceApiGetResponsesCSVServer{stream})
+}
+
+type DataServiceApi_GetResponsesCSVServer interface {
+	Send(*Chunk) error
+	grpc.ServerStream
+}
+
+type dataServiceApiGetResponsesCSVServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServiceApiGetResponsesCSVServer) Send(m *Chunk) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DataServiceApi_GetSurveyInfoCSV_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(SurveyInfoQuery)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServiceApiServer).GetSurveyInfoCSV(m, &dataServiceApiGetSurveyInfoCSVServer{stream})
+}
+
+type DataServiceApi_GetSurveyInfoCSVServer interface {
+	Send(*Chunk) error
+	grpc.ServerStream
+}
+
+type dataServiceApiGetSurveyInfoCSVServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataServiceApiGetSurveyInfoCSVServer) Send(m *Chunk) error {
+	return x.ServerStream.SendMsg(m)
+}
+
+func _DataServiceApi_GetSurveyInfo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SurveyInfoQuery)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DataServiceApiServer).GetSurveyInfo(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/influenzanet.data_service.DataServiceApi/GetSurveyInfo",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DataServiceApiServer).GetSurveyInfo(ctx, req.(*SurveyInfoQuery))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _DataServiceApi_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "influenzanet.data_service.DataServiceApi",
 	HandlerType: (*DataServiceApiServer)(nil),
@@ -164,7 +1074,22 @@ var _DataServiceApi_serviceDesc = grpc.ServiceDesc{
 			MethodName: "Status",
 			Handler:    _DataServiceApi_Status_Handler,
 		},
+		{
+			MethodName: "GetSurveyInfo",
+			Handler:    _DataServiceApi_GetSurveyInfo_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetResponsesCSV",
+			Handler:       _DataServiceApi_GetResponsesCSV_Handler,
+			ServerStreams: true,
+		},
+		{
+			StreamName:    "GetSurveyInfoCSV",
+			Handler:       _DataServiceApi_GetSurveyInfoCSV_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "data_service/data-service.proto",
 }

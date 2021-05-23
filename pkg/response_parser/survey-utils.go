@@ -100,9 +100,7 @@ func getTranslation(content []*studyAPI.LocalisedObject, lang string) (string, e
 		if translation.Code == lang {
 			mergedText := ""
 			for _, p := range translation.Parts {
-				if p.Dtype == "str" {
-					mergedText += p.GetStr()
-				}
+				mergedText += p.GetStr()
 			}
 			return mergedText, nil
 		}
