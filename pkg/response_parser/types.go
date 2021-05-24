@@ -1,5 +1,7 @@
 package response_parser
 
+import "github.com/influenzanet/data-service/pkg/api"
+
 const (
 	QUESTION_TYPE_SINGLE_CHOICE       = "single_choice"
 	QUESTION_TYPE_MULTIPLE_CHOICE     = "multiple_choice"
@@ -46,11 +48,37 @@ type SurveyVersionPreview struct {
 	Questions   []SurveyQuestion
 }
 
+func (sv SurveyVersionPreview) ToAPI() *api.SurveyVersionPreview {
+	v := &api.SurveyVersionPreview{
+		VersionId:   sv.VersionID,
+		Published:   sv.Published,
+		Unpublished: sv.Unpublished,
+	}
+	v.Questions = make([]*api.SurveyQuestion, len(sv.Questions))
+	for i, r := range sv.Questions {
+		v.Questions[i] = r.ToAPI()
+	}
+	return v
+}
+
 type SurveyQuestion struct {
 	ID           string
 	Title        string
 	QuestionType string
 	Responses    []ResponseDef
+}
+
+func (q SurveyQuestion) ToAPI() *api.SurveyQuestion {
+	v := &api.SurveyQuestion{
+		Key:          q.ID,
+		QuestionType: q.QuestionType,
+		Title:        q.Title,
+	}
+	v.Responses = make([]*api.ResponseDef, len(q.Responses))
+	for i, r := range q.Responses {
+		v.Responses[i] = r.ToAPI()
+	}
+	return v
 }
 
 type ResponseDef struct {
@@ -60,10 +88,31 @@ type ResponseDef struct {
 	Options      []ResponseOption
 }
 
+func (rd ResponseDef) ToAPI() *api.ResponseDef {
+	v := &api.ResponseDef{
+		Key:           rd.ID,
+		ResponseTypes: rd.ResponseType,
+		Label:         rd.Label,
+	}
+	v.Options = make([]*api.ResponseOption, len(rd.Options))
+	for i, o := range rd.Options {
+		v.Options[i] = o.ToAPI()
+	}
+	return v
+}
+
 type ResponseOption struct {
 	ID         string
 	OptionType string
 	Label      string
+}
+
+func (ro ResponseOption) ToAPI() *api.ResponseOption {
+	return &api.ResponseOption{
+		Key:        ro.ID,
+		OptionType: ro.OptionType,
+		Label:      ro.Label,
+	}
 }
 
 type ParsedResponse struct {
