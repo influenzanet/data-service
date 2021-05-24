@@ -92,18 +92,29 @@ func (rp *ResponseParser) AddResponse(rawResp *studyAPI.SurveyResponse) error {
 		}
 
 		// Set meta infos
-		parsedResponse.Meta.Initialised[question.ID] = ""
-		parsedResponse.Meta.Displayed[question.ID] = ""
-		parsedResponse.Meta.Responded[question.ID] = ""
-		parsedResponse.Meta.ItemVersion[question.ID] = ""
+		initColName := question.ID + rp.questionOptionKeySep + "metaInit"
+		rp.AddMetaColName(initColName)
+		parsedResponse.Meta.Initialised[initColName] = ""
+
+		dispColName := question.ID + rp.questionOptionKeySep + "metaDisplayed"
+		rp.AddMetaColName(dispColName)
+		parsedResponse.Meta.Displayed[dispColName] = ""
+
+		respColName := question.ID + rp.questionOptionKeySep + "metaResponse"
+		rp.AddMetaColName(respColName)
+		parsedResponse.Meta.Responded[respColName] = ""
+
+		itemVColName := question.ID + rp.questionOptionKeySep + "metaItemVersion"
+		rp.AddMetaColName(itemVColName)
+		parsedResponse.Meta.ItemVersion[itemVColName] = ""
+
 		arraySep := ";"
 		if resp != nil && resp.Meta != nil {
-			parsedResponse.Meta.Initialised[question.ID] = timestampsToStr(resp.Meta.Rendered, arraySep)
-			parsedResponse.Meta.Displayed[question.ID] = timestampsToStr(resp.Meta.Displayed, arraySep)
-			parsedResponse.Meta.Responded[question.ID] = timestampsToStr(resp.Meta.Responded, arraySep)
-			parsedResponse.Meta.ItemVersion[question.ID] = strconv.Itoa(int(resp.Meta.Version))
+			parsedResponse.Meta.Initialised[initColName] = timestampsToStr(resp.Meta.Rendered, arraySep)
+			parsedResponse.Meta.Displayed[dispColName] = timestampsToStr(resp.Meta.Displayed, arraySep)
+			parsedResponse.Meta.Responded[respColName] = timestampsToStr(resp.Meta.Responded, arraySep)
+			parsedResponse.Meta.ItemVersion[itemVColName] = strconv.Itoa(int(resp.Meta.Version))
 		}
-		rp.AddMetaColName(question.ID)
 	}
 
 	// Extend response col names:
@@ -150,11 +161,10 @@ func (rp ResponseParser) GetSurveyVersionDefs() []SurveyVersionPreview {
 }
 
 func (rp ResponseParser) GetResponses() []ParsedResponse {
-	// TODO: merge context and responses keys
 	return rp.responses
 }
 
-func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
+func (rp ResponseParser) GetResponsesCSV(writer io.Writer, includeMeta bool) error {
 	if len(rp.responses) < 1 {
 		return errors.New("no responses, nothing is generated")
 	}
@@ -164,6 +174,8 @@ func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
 	sort.Strings(contextCols)
 	responseCols := rp.responseColNames
 	sort.Strings(responseCols)
+	metaCols := rp.metaColNames
+	sort.Strings(metaCols)
 
 	// Prepare csv header
 	header := []string{
@@ -173,6 +185,9 @@ func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
 	}
 	header = append(header, contextCols...)
 	header = append(header, responseCols...)
+	if includeMeta {
+		header = append(header, metaCols...)
+	}
 
 	// Init writer
 	w := csv.NewWriter(writer)
@@ -209,6 +224,40 @@ func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
 			line = append(line, v)
 		}
 
+		if includeMeta {
+			for _, colName := range metaCols {
+				if strings.Contains(colName, "metaInit") {
+					v, ok := resp.Meta.Initialised[colName]
+					if !ok {
+						line = append(line, "")
+						continue
+					}
+					line = append(line, v)
+				} else if strings.Contains(colName, "metaDisplayed") {
+					v, ok := resp.Meta.Displayed[colName]
+					if !ok {
+						line = append(line, "")
+						continue
+					}
+					line = append(line, v)
+				} else if strings.Contains(colName, "metaResponse") {
+					v, ok := resp.Meta.Responded[colName]
+					if !ok {
+						line = append(line, "")
+						continue
+					}
+					line = append(line, v)
+				} else if strings.Contains(colName, "metaItemVersion") {
+					v, ok := resp.Meta.ItemVersion[colName]
+					if !ok {
+						line = append(line, "")
+						continue
+					}
+					line = append(line, v)
+				}
+			}
+		}
+
 		err := w.Write(line)
 		if err != nil {
 			return err
@@ -217,19 +266,3 @@ func (rp ResponseParser) GetResponsesCSV(writer io.Writer) error {
 	w.Flush()
 	return nil
 }
-
-func (rp ResponseParser) GetMetaCSV() string {
-	return ""
-}
-
-/*
-func getResponseTableCSV(responses studyAPI.SurveyResponses) (string, error) {
-
-	for _, resp := range responses.Responses {
-		// resp.VersionId
-		for _, question := range resp.Responses {
-			question.Meta.Version
-		}
-	}
-
-}*/

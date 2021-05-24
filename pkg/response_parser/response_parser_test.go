@@ -177,7 +177,7 @@ func TestGetResponseCSV(t *testing.T) {
 
 	t.Run("with no responses added yet", func(t *testing.T) {
 		buf := new(bytes.Buffer)
-		err := parser.GetResponsesCSV(buf)
+		err := parser.GetResponsesCSV(buf, false)
 		if err == nil {
 			t.Error("should produce error")
 		}
@@ -226,7 +226,7 @@ func TestGetResponseCSV(t *testing.T) {
 
 	t.Run("with one response added", func(t *testing.T) {
 		buf := new(bytes.Buffer)
-		err := parser.GetResponsesCSV(buf)
+		err := parser.GetResponsesCSV(buf, false)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
